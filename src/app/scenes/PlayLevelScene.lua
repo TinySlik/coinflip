@@ -1,6 +1,6 @@
 
 local Levels = import("..data.Levels")
-local Board = import("..views.Board")
+local Board = --[[import("..views.Board")]] import("..views.MyCustomBoard")
 local AdBar = import("..views.AdBar")
 
 local PlayLevelScene = class("PlayLevelScene", function()
