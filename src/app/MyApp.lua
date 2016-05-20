@@ -19,6 +19,8 @@ function MyApp:run()
     cc.FileUtils:getInstance():addSearchPath("res/")
     display.addSpriteFrames(GAME_TEXTURE_DATA_FILENAME, GAME_TEXTURE_IMAGE_FILENAME)
 
+    display.addSpriteFrames(GAME_TEXTURE_DATA_CELLS_FILENAME, GAME_TEXTURE_IMAGE_CELLS_FILENAME)
+
     -- preload all sounds
     for k, v in pairs(GAME_SFX) do
         audio.preloadSound(v)
