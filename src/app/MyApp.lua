@@ -5,6 +5,9 @@ require("framework.init")
 require("framework.shortcodes")
 require("framework.cc.init")
 
+
+－－尝试使用push
+
 local MyApp = class("MyApp", cc.mvc.AppBase)
 
 function MyApp:ctor()
