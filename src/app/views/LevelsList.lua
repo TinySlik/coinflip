@@ -1,6 +1,6 @@
 
 local LevelsListCell = import(".LevelsListCell")
-local Levels = import("..data.Levels")
+local Levels = import("..data.MyLevels")
 
 local PageControl = import("..ui.PageControl")
 local LevelsList = class("LevelsList", PageControl)
