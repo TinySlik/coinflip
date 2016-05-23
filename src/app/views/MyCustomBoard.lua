@@ -12,9 +12,11 @@ local NODE_ZORDER    = 0
 local COIN_ZORDER    = 1000
 
 function MyBoard:ctor(levelData)
+    math.randomseed(tostring(os.time()):reverse():sub(1, 6))
+
     cc.GameObject.extend(self):addComponent("components.behavior.EventProtocol"):exportMethods()
 
-    self.batch = display.newBatchNode(GAME_TEXTURE_IMAGE_FILENAME)
+    self.batch = display.newNode()
     self.batch:setPosition(display.cx, display.cy)
     self:addChild(self.batch)
 
@@ -40,9 +42,10 @@ function MyBoard:ctor(levelData)
 
                 local node = self.grid[row][col]
                 if node ~= Levels.NODE_IS_EMPTY then
-                    local cell = Cell.new(node)
+                    -- local cell = Cell.new(node)
+                    local cell = Cell.new()
                     cell:setPosition(x, y)
-                    cell:setScale(GAME_CELL_STAND_SCALE)
+                    cell:setScale(GAME_CELL_STAND_SCALE  * 1.65)
                     cell.row = row
                     cell.col = col
                     self.grid[row][col] = cell
@@ -68,9 +71,10 @@ function MyBoard:ctor(levelData)
 
                 local node = self.grid[row][col]
                 if node ~= Levels.NODE_IS_EMPTY then
-                    local cell = Cell.new(node)
+                    -- local cell = Cell.new(node)
+                    local cell = Cell.new()
                     cell:setPosition(x, y)
-                    cell:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE)
+                    cell:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE * 1.65)
                     cell.row = row
                     cell.col = col
                     self.grid[row][col] = cell
