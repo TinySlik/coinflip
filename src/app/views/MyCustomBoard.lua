@@ -1,6 +1,6 @@
 
 local Levels = import("..data.MyLevels")
-local Cell   = import("..views.MyCoin")
+local Cell   = import("..views.MyCell")
 
 local MyBoard = class("MyBoard", function()
     return display.newNode()
