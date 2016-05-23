@@ -28,14 +28,14 @@ function MyBoard:ctor(levelData)
 
     if self.rows <= 8 then
         GAME_CELL_EIGHT_ADD_SCALE = 1.0
-        local offsetX = -math.floor(NODE_PADDING * self.cols / 2) - NODE_PADDING / 2
-        local offsetY = -math.floor(NODE_PADDING * self.rows / 2) - NODE_PADDING / 2
+        self.offsetX = -math.floor(NODE_PADDING * self.cols / 2) - NODE_PADDING / 2
+        self.offsetY = -math.floor(NODE_PADDING * self.rows / 2) - NODE_PADDING / 2
         NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
         -- create board, place all cells
         for row = 1, self.rows do
-            local y = row * NODE_PADDING + offsetY
+            local y = row * NODE_PADDING + self.offsetY
             for col = 1, self.cols do
-                local x = col * NODE_PADDING + offsetX
+                local x = col * NODE_PADDING + self.offsetX
                 local nodeSprite = display.newSprite("#BoardNode.png", x, y)
                 nodeSprite:setScale(GAME_CELL_STAND_SCALE)
                 self.batch:addChild(nodeSprite, NODE_ZORDER)
@@ -56,16 +56,16 @@ function MyBoard:ctor(levelData)
             end
         end
     else
-        local offsetX = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
-        local offsetY = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
+        self.offsetX = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
+        self.offsetY = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
         GAME_CELL_EIGHT_ADD_SCALE = 8.0 / self.rows
 
         NODE_PADDING = 100 * GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE
         -- create board, place all cells
         for row = 1, self.rows do
-            local y = row * NODE_PADDING + offsetY
+            local y = row * NODE_PADDING + self.offsetY
             for col = 1, self.cols do
-                local x = col * NODE_PADDING + offsetX
+                local x = col * NODE_PADDING + self.offsetX
                 local nodeSprite = display.newSprite("#BoardNode.png", x, y)
                 nodeSprite:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE)
                 self.batch:addChild(nodeSprite, NODE_ZORDER)
@@ -85,8 +85,7 @@ function MyBoard:ctor(levelData)
                 end
             end
         end
-        GAME_CELL_EIGHT_ADD_SCALE = 1.0
-        NODE_PADDING = 100 * GAME_CELL_STAND_SCALE
+        
     end
 
     self:setNodeEventEnabled(true)
@@ -95,6 +94,7 @@ function MyBoard:ctor(levelData)
         return self:onTouch(event.name, event.x, event.y)
     end)
     self:checkAll()
+    self:changeSingedCell()
 end
 
 function MyBoard:checkLevelCompleted()
@@ -133,8 +133,6 @@ function MyBoard:checkAll()
     end
     self:changeSingedCell()
 end
-
-
 
 function MyBoard:checkCell(cell)
     local listH = {}
@@ -218,11 +216,32 @@ end
 
 function MyBoard:changeSingedCell()
     local sum = 0
+    local DropList = {}
+
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
             sum = sum +1
-            print("x",v.row,"y",v.col,"type",v.nodeType)
-            print("find it!!!!!!",sum )
+            local row = v.row
+            local col = v.col
+            local x = col * NODE_PADDING + self.offsetX
+            local y = (self.rows + 1)* NODE_PADDING + self.offsetY
+            for i,v in pairs(DropList) do
+                if col == v.col then
+                    y = y + NODE_PADDING
+                end
+            end
+
+            local cell = Cell.new()
+            DropList [#DropList + 1] = cell
+            cell.isNeedClean = false
+            cell:setPosition(x, y)
+            cell:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE * 1.65)
+            cell.row = self.rows
+            cell.col = col
+            self.grid[self.rows][col] = cell
+
+            self.cells[i] = cell
+            self.batch:addChild(cell, COIN_ZORDER)
         end
     end
 end
@@ -232,6 +251,8 @@ function MyBoard:onEnter()
 end
 
 function MyBoard:onExit()
+    GAME_CELL_EIGHT_ADD_SCALE = 1.0
+    NODE_PADDING = 100 * GAME_CELL_STAND_SCALE
     self:removeAllEventListeners()
 end
 

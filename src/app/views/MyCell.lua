@@ -33,9 +33,11 @@ local Cell = class("Cell", function(nodeType)
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
 
-    
+
     return sprite
 end)
+
+
 
 
 
