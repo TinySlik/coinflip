@@ -8,17 +8,10 @@ local PlayLevelScene = class("PlayLevelScene", function()
 end)
 
 function PlayLevelScene:ctor(levelIndex)
-    local bg = display.newSprite("#PlayLevelSceneBg.png")
+    local bg = display.newSprite("bg_game.jpg")
     -- make background sprite always align top
     bg:setPosition(display.cx, display.top - bg:getContentSize().height / 2)
     self:addChild(bg)
-
-    local title = display.newSprite("#Title.png", display.left + 150, display.top - 50)
-    title:setScale(0.5)
-    self:addChild(title)
-
-    local adBar = AdBar.new()
-    self:addChild(adBar)
 
     local label = cc.ui.UILabel.new({
         UILabelType = 1,
@@ -34,8 +27,8 @@ function PlayLevelScene:ctor(levelIndex)
     self.board:addEventListener("LEVEL_COMPLETED", handler(self, self.onLevelCompleted))
     self:addChild(self.board)
 
-    cc.ui.UIPushButton.new({normal = "#BackButton.png", pressed = "#BackButtonSelected.png"})
-        :align(display.CENTER, display.right - 100, display.bottom + 120)
+    cc.ui.UIPushButton.new({normal = "sanjisBtn.png"})
+        :align(display.CENTER, display.left + 100, display.top - 120)
         :onButtonClicked(function()
             app:enterChooseLevelScene()
         end)

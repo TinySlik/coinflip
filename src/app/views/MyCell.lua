@@ -27,11 +27,13 @@ local Cell = class("Cell", function(nodeType)
         if nodeType == 1 then  
         end
     else
-        index =  math.floor(math.random(14)+ 1) 
+        index =  math.floor(math.random(6)+ 1) 
     end
 
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
+
+    
     return sprite
 end)
 
