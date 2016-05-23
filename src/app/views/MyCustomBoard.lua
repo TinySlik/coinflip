@@ -1,6 +1,6 @@
 
 local Levels = import("..data.MyLevels")
-local Coin   = import("..views.MyCoin")
+local Cell   = import("..views.MyCoin")
 
 local MyBoard = class("MyBoard", function()
     return display.newNode()
@@ -21,7 +21,7 @@ function MyBoard:ctor(levelData)
     self.grid = clone(levelData.grid)
     self.rows = levelData.rows
     self.cols = levelData.cols
-    self.coins = {}
+    self.cells = {}
     self.flipAnimationCount = 0
 
     if self.rows <= 8 then
@@ -29,7 +29,7 @@ function MyBoard:ctor(levelData)
         local offsetX = -math.floor(NODE_PADDING * self.cols / 2) - NODE_PADDING / 2
         local offsetY = -math.floor(NODE_PADDING * self.rows / 2) - NODE_PADDING / 2
         NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
-        -- create board, place all coins
+        -- create board, place all cells
         for row = 1, self.rows do
             local y = row * NODE_PADDING + offsetY
             for col = 1, self.cols do
@@ -40,14 +40,14 @@ function MyBoard:ctor(levelData)
 
                 local node = self.grid[row][col]
                 if node ~= Levels.NODE_IS_EMPTY then
-                    local coin = Coin.new(node)
-                    coin:setPosition(x, y)
-                    coin:setScale(GAME_CELL_STAND_SCALE)
-                    coin.row = row
-                    coin.col = col
-                    self.grid[row][col] = coin
-                    self.coins[#self.coins + 1] = coin
-                    self.batch:addChild(coin, COIN_ZORDER)
+                    local cell = Cell.new(node)
+                    cell:setPosition(x, y)
+                    cell:setScale(GAME_CELL_STAND_SCALE)
+                    cell.row = row
+                    cell.col = col
+                    self.grid[row][col] = cell
+                    self.cells[#self.cells + 1] = cell
+                    self.batch:addChild(cell, COIN_ZORDER)
                 end
             end
         end
@@ -57,7 +57,7 @@ function MyBoard:ctor(levelData)
         GAME_CELL_EIGHT_ADD_SCALE = 8.0 / self.rows
 
         NODE_PADDING = 100 * GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE
-        -- create board, place all coins
+        -- create board, place all cells
         for row = 1, self.rows do
             local y = row * NODE_PADDING + offsetY
             for col = 1, self.cols do
@@ -68,14 +68,14 @@ function MyBoard:ctor(levelData)
 
                 local node = self.grid[row][col]
                 if node ~= Levels.NODE_IS_EMPTY then
-                    local coin = Coin.new(node)
-                    coin:setPosition(x, y)
-                    coin:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE)
-                    coin.row = row
-                    coin.col = col
-                    self.grid[row][col] = coin
-                    self.coins[#self.coins + 1] = coin
-                    self.batch:addChild(coin, COIN_ZORDER)
+                    local cell = Cell.new(node)
+                    cell:setPosition(x, y)
+                    cell:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE)
+                    cell.row = row
+                    cell.col = col
+                    self.grid[row][col] = cell
+                    self.cells[#self.cells + 1] = cell
+                    self.batch:addChild(cell, COIN_ZORDER)
                 end
             end
         end
@@ -93,10 +93,10 @@ end
 
 function MyBoard:checkLevelCompleted()
     local count = 0
-    for _, coin in ipairs(self.coins) do
-        if coin.isWhite then count = count + 1 end
+    for _, cell in ipairs(self.cells) do
+        if cell.isWhite then count = count + 1 end
     end
-    if count == #self.coins then
+    if count == #self.cells then
         -- completed
         self:setTouchEnabled(false)
         self:dispatchEvent({name = "LEVEL_COMPLETED"})
@@ -113,8 +113,8 @@ function MyBoard:onTouch(event, x, y)
     if event ~= "began" or self.flipAnimationCount > 0 then return end
 
     local padding = NODE_PADDING / 2
-    for _, coin in ipairs(self.coins) do
-        local cx, cy = coin:getPosition()
+    for _, cell in ipairs(self.cells) do
+        local cx, cy = cell:getPosition()
         cx = cx + display.cx
         cy = cy + display.cy
         if x >= cx - padding
