@@ -20,23 +20,16 @@ local Levels = import("..data.MyLevels")
 }
 
 local Cell = class("Cell", function(nodeType)
-    local index = 1
+    local index
 
-    -- if nodeType == 1 then
-    -- else if nodeType == 2 then
-    -- else if nodeType == 3 then
-    -- else if nodeType == 4 then
-    -- else if nodeType == 5 then
-    -- else if nodeType == 6 then
-    -- else if nodeType == 7 then
-    -- else if nodeType == 8 then
-    -- else if nodeType == 9 then
-    -- else if nodeType == 10 then   
-    -- end
-
-    -- if not nodeType then
+    if nodeType then
+        index = nodeType
+        if nodeType == 1 then  
+        end
+    else
         index =  math.floor(math.random(14)+ 1) 
-    -- end
+    end
+
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
     return sprite
