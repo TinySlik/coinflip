@@ -165,6 +165,7 @@ function MyBoard:checkCell(cell)
             end
         end
     end
+
     --目前的当前格子的左右待消除对象(连同自己)
 
     --print(#listH)
@@ -225,7 +226,7 @@ function MyBoard:changeSingedCell(onAnimationComplete)
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
             sum = sum +1
-            local drop_pad = 0
+            local drop_pad = 1
             local row = v.row
             local col = v.col
             local x = col * NODE_PADDING + self.offsetX
@@ -234,7 +235,7 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 if col == v.col then
                     drop_pad = drop_pad + 1
                     y = y + NODE_PADDING
-                    table.remove(DropList,i) 
+                    --table.remove(DropList,i) 
                 end
             end
 
@@ -245,7 +246,7 @@ function MyBoard:changeSingedCell(onAnimationComplete)
             cell:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE * 1.65)
             cell.row = self.rows + drop_pad
             cell.col = col
-            self.grid[self.rows + drop_pad][col] = cell
+            self.grid[self.rows + 1 + drop_pad][col] = cell
             if onAnimationComplete == nil then
                 self.batch:removeChild(v, true)
                 self.grid[row][col] = nil
@@ -265,44 +266,13 @@ function MyBoard:changeSingedCell(onAnimationComplete)
 
     --填补self.grid空缺
 
-    -- while #DropList > 0 do
-        for i,v in pairs(DropList) do
-            local row_step = v.row
-            while self:getCell(row_step, v.col) do
-                row_step = row_step - 1
-            end
-            row_step = row_step + 1
-
-            print(row_step)
-
-            local row_drop_dis = 0
-            while self:getCell(row_step, v.col) == nil and row_step > 0 do
-                row_drop_dis = row_drop_dis + 1
-                row_step = row_step - 1
-            end
-            row_step = row_step + 1
-
-            print(row_step)
-            
-            for j = row_step, v.row - row_drop_dis do
-                if self.grid[row_step + row_drop_dis][v.col] then
-                    self.grid[row_step + row_drop_dis][v.col].row = self.grid[row_step + row_drop_dis][v.col].row - row_drop_dis
-                end
-                temp = self.grid[row_step][v.col]
-                self.grid[row_step][v.col] = self.grid[row_step + row_drop_dis][v.col]
-                self.grid[row_step + row_drop_dis][v.col] = temp
-            end
-        end
-    -- end
-
-    -- dump(self.grid)
-
-    -- for row = 1, self.rows do
-    --     for col = 1, self.cols do
-    --         if self.grid[row][col] then
-    --             print(self.grid[row][col].row,self.grid[row][col].col)
-    --         else
-    --             print("fail")
+    -- for i,v in pairs(DropList) do
+    --     for i=1, self.rows do
+    --         local cell_target = self.grid[i][v.col]
+    --         if cell_target == nil then
+    --             local j = i
+                
+    --             i = i - 1
     --         end
     --     end
     -- end
