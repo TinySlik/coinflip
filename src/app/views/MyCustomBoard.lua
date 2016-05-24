@@ -95,7 +95,6 @@ function MyBoard:ctor(levelData)
                 end
             end
         end
-        
     end
 
     self:setNodeEventEnabled(true)
@@ -103,8 +102,9 @@ function MyBoard:ctor(levelData)
     self:addNodeEventListener(cc.NODE_TOUCH_EVENT, function(event)
         return self:onTouch(event.name, event.x, event.y)
     end)
-    self:checkAll()
-    self:changeSingedCell()
+    while self:checkAll() do
+        self:changeSingedCell()
+    end
 end
 
 function MyBoard:checkLevelCompleted()
@@ -132,12 +132,14 @@ end
 function MyBoard:checkAll()
     local padding = NODE_PADDING * GAME_CELL_EIGHT_ADD_SCALE * 1.65
     for _, cell in ipairs(self.cells) do
-        local cx, cy = cell:getPosition()
-        cx = cx + display.cx
-        cy = cy + display.cy
         self:checkCell(cell)
     end
-    self:changeSingedCell()
+    for i,v in pairs (self.cells) do
+        if v.isNeedClean  then
+            return true
+        end
+    end
+    return false
 end
 
 function MyBoard:checkCell(cell)
@@ -167,8 +169,6 @@ function MyBoard:checkCell(cell)
     end
 
     --目前的当前格子的左右待消除对象(连同自己)
-
-    --print(#listH)
 
     if #listH < 3 then
     else
@@ -221,7 +221,12 @@ end
 
 function MyBoard:changeSingedCell(onAnimationComplete)
     local sum = 0
+    --统计所有的掉落项
+
     local DropList = {}
+
+    --统计所有的最高掉落项
+    local DropListFinal = {}
 
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
@@ -235,24 +240,29 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 if col == v.col then
                     drop_pad = drop_pad + 1
                     y = y + NODE_PADDING
-                    --table.remove(DropList,i) 
+                    for i2,v2 in pairs(DropListFinal) do
+                        if v2.col == v.col then
+                            table.remove(DropListFinal,i2)
+                        end
+                    end
                 end
             end
 
             local cell = Cell.new()
             DropList [#DropList + 1] = cell
+            DropListFinal [#DropListFinal + 1] = cell
             cell.isNeedClean = false
             cell:setPosition(x, y)
             cell:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE * 1.65)
             cell.row = self.rows + drop_pad
             cell.col = col
-            self.grid[self.rows + 1 + drop_pad][col] = cell
+            self.grid[self.rows +  drop_pad][col] = cell
             if onAnimationComplete == nil then
                 self.batch:removeChild(v, true)
                 self.grid[row][col] = nil
             else
+                --
             end
-            
             self.cells[i] = cell
             self.batch:addChild(cell, COIN_ZORDER)
         end
@@ -260,29 +270,68 @@ function MyBoard:changeSingedCell(onAnimationComplete)
 
     local temp = nil
 
-    for i,v in pairs(DropList) do
-        print(v.row,v.col)
+    --进行一次DropListFinal的精简
+    for i=1,#DropListFinal do
+        if DropListFinal[i] then
+            for j=1,#DropList do
+                if DropListFinal[i].col == DropList[j].col and DropListFinal[i].row < DropList[j].row then
+                    DropListFinal[i] = DropList[j]
+                end
+            end
+        end
+    end
+
+    --重新排列grid
+    for i , v in pairs(DropListFinal) do
+        if v then
+            local c = v.row 
+            local j = 1
+            while j <=  self.rows  do
+                if self.grid[j][v.col] == nil then
+                    local k = j
+                    while k <  c + 1 do
+                        self:swap(k,v.col,k+1,v.col)
+                        k = k + 1
+                    end
+                    j = j - 1
+                end
+                j = j + 1
+            end
+        end
     end
 
     --填补self.grid空缺
-
-    -- for i,v in pairs(DropList) do
-    --     for i=1, self.rows do
-    --         local cell_target = self.grid[i][v.col]
-    --         if cell_target == nil then
-    --             local j = i
-                
-    --             i = i - 1
-    --         end
-    --     end
-    -- end
+    --或执行最后的所有动画步骤
 
     if onAnimationComplete == nil then
-        --self:checkAll()
+        for i=1,self.rows do
+            for j=1,self.cols do
+                local y = i * NODE_PADDING + self.offsetY
+                local x = j * NODE_PADDING + self.offsetX
+                if self.grid[i][j] then
+                    self.grid[i][j]:setPosition(x,y)
+                end
+            end
+        end
     else
-        
+        --
     end
+end
 
+function MyBoard:swap(row1,col1,row2,col2)
+    local temp
+    if self.grid[row1][col1] then
+        self.grid[row1][col1].row = row2
+        self.grid[row1][col1].col = col2
+    end
+    if self.grid[row2][col2] then
+        self.grid[row2][col2].row = row1
+        self.grid[row2][col2].col = col2
+    end
+    
+    temp = self.grid[row1][col1] 
+    self.grid[row1][col1] = self.grid[row2][col2]
+    self.grid[row2][col2] = temp
 end
 
 function MyBoard:onEnter()
