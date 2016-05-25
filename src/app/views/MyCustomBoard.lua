@@ -6,6 +6,8 @@ local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
 
+local isInAnimation = false
+
 local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
 local NODE_ZORDER    = 0
 local COIN_ZORDER    = 1000
@@ -38,8 +40,6 @@ function MyBoard:ctor(levelData)
             end
         end
     end
-
-    dump(self.grid)
 
     self.rows = levelData.rows
     self.cols = levelData.cols
@@ -113,8 +113,8 @@ function MyBoard:ctor(levelData)
         return self:onTouch(event.name, event.x, event.y)
     end)
     
-    while self:checkAll() do
-        self:changeSingedCell()
+    if self:checkAll() then
+        self:changeSingedCell(true)
     end
 end
 
@@ -158,7 +158,6 @@ function MyBoard:checkCell(cell)
                 break
             end
         end
-        
     end
     --格子中右边对象是否相同的遍历
     if cell.col ~= self.cols then
@@ -266,10 +265,10 @@ function MyBoard:changeSingedCell(onAnimationComplete)
             cell.col = col
             self.grid[self.rows +  drop_pad][col] = cell
             if onAnimationComplete == nil then
-                self.batch:removeChild(v, true)
+                self.batch:removeChild(self.grid[row][col], true)
                 self.grid[row][col] = nil
             else
-                self.batch:removeChild(v, true)
+                self.batch:removeChild(self.grid[row][col], true)
                 self.grid[row][col] = nil
             end
 
@@ -290,7 +289,6 @@ function MyBoard:changeSingedCell(onAnimationComplete)
             end
         end
     end
-
     --重新排列grid
     for i , v in pairs(DropListFinal) do
         if v then
@@ -348,8 +346,7 @@ function MyBoard:changeSingedCell(onAnimationComplete)
             if self:checkAll() then
                 self:changeSingedCell(true)
             end
-            
-            end, 1.23 , false)
+        end, 1.23 , false)
     end
 end
 
@@ -372,48 +369,47 @@ function MyBoard:getCell(row, col)
     end
 end
 
-function MyBoard:swap(row1,col1,row2,col2,isAnimation,callBack)
+function MyBoard:swap(row1,col1,row2,col2)
     local temp
-    if self.grid[row1] and self.grid[row1][col1] then
+    if self.grid[row1][col1] then
         self.grid[row1][col1].row = row2
         self.grid[row1][col1].col = col2
     end
-    if self.grid[row2] and self.grid[row2][col2] then
+    if self.grid[row2][col2] then
         self.grid[row2][col2].row = row1
-        self.grid[row2][col2].col = col2
+        self.grid[row2][col2].col = col1
     end
     
-    if self.grid[row1] and self.grid[row2] then
-        temp = self.grid[row1][col1] 
-        self.grid[row1][col1] = self.grid[row2][col2]
-        self.grid[row2][col2] = temp
+    temp = self.grid[row1][col1] 
+    self.grid[row1][col1] = self.grid[row2][col2]
+    self.grid[row2][col2] = temp
+end
 
-        if self.grid[row2][col2] == nil or self.grid[row1][col1] == nil then
-            return
-        end
+
+function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack)
+    if self.grid[row1][col1] == nil or self.grid[row2][col2] == nil then
+        print("have one nil value with the swap function!!!!")
+        return
     end
-
-    if isAnimation ~= nil then
-        if isAnimation  then
-            local X1,Y1 = self.grid[row1][col1]:getPosition()
-            local X2,Y2 = self.grid[row2][col2]:getPosition()
-            if callBack then
-                self.grid[row1][col1]:runAction(transition.sequence({
-                        cc.MoveTo:create(0.8, cc.p(X2,Y2)),
-                        cc.CallFunc:create(function()
-                             callBack()   
-                        end)
-                    }))
-                self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
-            else
-                self.grid[row1][col1]:runAction(cc.MoveTo:create(0.8, cc.p(X2,Y2)))
-                self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
-            end
-            
+    if not isInAnimation then
+            isInAnimation = true
+        local X1,Y1 = self.grid[row1][col1]:getPosition()
+        local X2,Y2 = self.grid[row2][col2]:getPosition()
+        if callBack then
+            self.grid[row1][col1]:runAction(transition.sequence({
+                    cc.MoveTo:create(0.8, cc.p(X2,Y2)),
+                    cc.CallFunc:create(function()
+                        self:swap(row1,col1,row2,col2)
+                        callBack()
+                        isInAnimation = false   
+                    end)
+                }))
+            self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
         else
-            local tempX,tempY = self.grid[row1][col1]:getPosition()
-            self.grid[row1][col1]:setPosition(self.grid[row2][col2]:getPositionX(),self.grid[row2][col2]:getPositionY())
-            self.grid[row2][col2]:setPosition(tempX,tempY)
+            self.grid[row1][col1]:runAction(cc.MoveTo:create(0.8, cc.p(X2,Y2)))
+            self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
+            self:swap(row1,col1,row2,col2)
+            isInAnimation = false 
         end
     end
 end
@@ -423,19 +419,17 @@ function MyBoard:onTouch(event, x, y)
         local row,col = self:getRandC(x, y)
         curSwapBeginRow = row
         curSwapBeginCol = col
-        print(row,col)
     end
 
     if event == "ended" then
         local row,col = self:getRandC(x, y)
-        print(row,col)
-
-        self:swap(curSwapBeginRow, curSwapBeginCol, row, col, true , function()
-            if self:checkAll() then
+        self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
+            function()
+                if self:checkAll() then
                 self:changeSingedCell(true)
+                end
             end
-        end)
-        self:showGrid()
+        )
     end
     
     return true
