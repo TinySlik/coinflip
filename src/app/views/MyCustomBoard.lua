@@ -146,11 +146,14 @@ function MyBoard:checkCell(cell)
     while i > 1 do
         i = i -1
         local cell_left = self:getCell(cell.row,i)
-        if cell.nodeType == cell_left.nodeType then
-            listH [#listH + 1] = cell_left
-        else
-            break
+        if cell_left then
+            if cell.nodeType == cell_left.nodeType then
+                listH [#listH + 1] = cell_left
+            else
+                break
+            end
         end
+        
     end
     --格子中右边对象是否相同的遍历
     if cell.col ~= self.cols then
@@ -196,11 +199,13 @@ function MyBoard:checkCell(cell)
     --格子中下面对象是否相同的遍历
     while i > 1 do
         i = i -1
-        local cell_down = self:getCell(i,cell.col)
-        if cell.nodeType == cell_down.nodeType then
-            listH [#listH + 1] = cell_down
-        else
-            break
+        if cell_down then
+            local cell_down = self:getCell(i,cell.col)
+            if cell.nodeType == cell_down.nodeType then
+                listH [#listH + 1] = cell_down
+            else
+                break
+            end
         end
     end
 
@@ -324,18 +329,13 @@ function MyBoard:changeSingedCell(onAnimationComplete)
 
 
                 if cell_t then
-                    local x_now,y_now = cell_t:getPosition()
-                    if math.abs(y_now - y) > 6  then
-                        cell_t.isInAction = true
-                        cell_t:runAction(transition.sequence({
-                            cc.DelayTime:create(0.45),
-                            cc.MoveTo:create(0.78, cc.p(x, y)),
-                            cc.CallFunc:create(function()
-                                --self:showGrid()
-                                cell_t.isInAction = false
-                            end)
-                        }))
-                    end
+                    cell_t:runAction(transition.sequence({
+                        cc.DelayTime:create(0.45),
+                        cc.MoveTo:create(0.78, cc.p(x, y)),
+                        cc.CallFunc:create(function()
+                            --self:showGrid()
+                        end)
+                    }))
                 end
             end
         end
