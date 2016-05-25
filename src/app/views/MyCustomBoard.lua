@@ -10,6 +10,11 @@ local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
 local NODE_ZORDER    = 0
 local COIN_ZORDER    = 1000
 
+local curSwapBeginRow = -1
+local curSwapBeginCol = -1
+
+local scheduler = cc.Director:getInstance():getScheduler()
+
 function MyBoard:ctor(levelData)
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
 
@@ -102,6 +107,7 @@ function MyBoard:ctor(levelData)
     self:addNodeEventListener(cc.NODE_TOUCH_EVENT, function(event)
         return self:onTouch(event.name, event.x, event.y)
     end)
+    
     while self:checkAll() do
         self:changeSingedCell()
     end
@@ -119,19 +125,9 @@ function MyBoard:checkLevelCompleted()
     end
 end
 
-function MyBoard:getCell(row, col)
-    if self.grid[row] then
-        return self.grid[row][col]
-    end
-end
-
-function MyBoard:onTouch(event, x, y)
-    return true
-end
-
 function MyBoard:checkAll()
     local padding = NODE_PADDING * GAME_CELL_EIGHT_ADD_SCALE * 1.65
-    for _, cell in ipairs(self.cells) do
+    for _, cell in pairs(self.cells) do
         self:checkCell(cell)
     end
     for i,v in pairs (self.cells) do
@@ -220,8 +216,6 @@ function MyBoard:checkCell(cell)
 end
 
 function MyBoard:changeSingedCell(onAnimationComplete)
-    local sum = 0
-    --统计所有的掉落项
 
     local DropList = {}
 
@@ -230,7 +224,6 @@ function MyBoard:changeSingedCell(onAnimationComplete)
 
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
-            sum = sum +1
             local drop_pad = 1
             local row = v.row
             local col = v.col
@@ -261,8 +254,10 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 self.batch:removeChild(v, true)
                 self.grid[row][col] = nil
             else
-                --
+                self.batch:removeChild(v, true)
+                self.grid[row][col] = nil
             end
+
             self.cells[i] = cell
             self.batch:addChild(cell, COIN_ZORDER)
         end
@@ -300,6 +295,8 @@ function MyBoard:changeSingedCell(onAnimationComplete)
         end
     end
 
+    --self:showGrid()
+
     --填补self.grid空缺
     --或执行最后的所有动画步骤
 
@@ -313,12 +310,65 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 end
             end
         end
+        if self:checkAll() then
+             self:changeSingedCell()
+        end 
     else
-        --
+        for i=1,self.rows do
+            for j=1,self.cols do
+
+
+                local y = i * NODE_PADDING + self.offsetY
+                local x = j * NODE_PADDING + self.offsetX
+                local cell_t = self.grid[i][j]
+
+
+                if cell_t then
+                    local x_now,y_now = cell_t:getPosition()
+                    if math.abs(y_now - y) > 6  then
+                        cell_t.isInAction = true
+                        cell_t:runAction(transition.sequence({
+                            cc.DelayTime:create(0.45),
+                            cc.MoveTo:create(0.78, cc.p(x, y)),
+                            cc.CallFunc:create(function()
+                                --self:showGrid()
+                                cell_t.isInAction = false
+                            end)
+                        }))
+                    end
+                end
+            end
+        end
+        
+        self.handle  = scheduler:scheduleScriptFunc (function () 
+            scheduler:unscheduleScriptEntry(self.handle )
+            if self:checkAll() then
+                self:changeSingedCell(true)
+            end
+            
+            end, 1.23 , false)
     end
 end
 
-function MyBoard:swap(row1,col1,row2,col2)
+function MyBoard:showGrid()
+    for i=1,self.rows +8 do
+        local sum = 0
+        for j=1,self.cols do
+            if self.grid[i][j] then
+                sum = sum +1
+            end
+        end
+        print("rows:",i , "sum :" ,sum)
+    end
+end
+
+function MyBoard:getCell(row, col)
+    if self.grid[row] then
+        return self.grid[row][col]
+    end
+end
+
+function MyBoard:swap(row1,col1,row2,col2,isAnimation,callBack)
     local temp
     if self.grid[row1][col1] then
         self.grid[row1][col1].row = row2
@@ -332,6 +382,69 @@ function MyBoard:swap(row1,col1,row2,col2)
     temp = self.grid[row1][col1] 
     self.grid[row1][col1] = self.grid[row2][col2]
     self.grid[row2][col2] = temp
+
+    if isAnimation ~= nil then
+        if isAnimation  then
+            local X1,Y1 = self.grid[row1][col1]:getPosition()
+            local X2,Y2 = self.grid[row2][col2]:getPosition()
+            if callBack then
+                self.grid[row1][col1]:runAction(transition.sequence({
+                        cc.MoveTo:create(0.8, cc.p(X2,Y2)),
+                        cc.CallFunc:create(function()
+                             callBack()   
+                        end)
+                    }))
+                self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
+            else
+                self.grid[row1][col1]:runAction(cc.MoveTo:create(0.8, cc.p(X2,Y2)))
+                self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
+            end
+            
+        else
+            local tempX,tempY = self.grid[row1][col1]:getPosition()
+            self.grid[row1][col1]:setPosition(self.grid[row2][col2]:getPositionX(),self.grid[row2][col2]:getPositionY())
+            self.grid[row2][col2]:setPosition(tempX,tempY)
+        end
+    end
+end
+
+function MyBoard:onTouch(event, x, y)
+    if event == "began" then
+        local row,col = self:getRandC(x, y)
+        curSwapBeginRow = row
+        curSwapBeginCol = col
+        print(row,col)
+    end
+
+    if event == "ended" then
+        local row,col = self:getRandC(x, y)
+        print(row,col)
+
+        self:swap(curSwapBeginRow, curSwapBeginCol, row, col, true , function()
+            if self:checkAll() then
+                self:changeSingedCell(true)
+            end
+        end)
+        
+    end
+    
+    return true
+end
+
+function MyBoard:getRandC(x,y)
+    local padding = NODE_PADDING / 2
+    for _, cell in ipairs(self.cells) do
+        local cx, cy = cell:getPosition()
+        cx = cx + display.cx
+        cy = cy + display.cy
+        if x >= cx - padding
+            and x <= cx + padding
+            and y >= cy - padding
+            and y <= cy + padding then
+            return cell.row , cell.col
+        end
+    end
+    return -1 , -1
 end
 
 function MyBoard:onEnter()
