@@ -29,12 +29,17 @@ function MyBoard:ctor(levelData)
     for i=1,levelData.rows * 2 do
         self.grid[i] = {}
         if levelData.grid[i] == nil then
-            levelData.grid[i] = {}
-        end
-        for j=1,levelData.cols do
-            self.grid[i][j] = levelData.grid[i][j]
+            for j=1,levelData.cols do
+                self.grid[i][j] = nil
+            end
+        else
+            for j=1,levelData.cols do
+                self.grid[i][j] = levelData.grid[i][j]
+            end
         end
     end
+
+    dump(self.grid)
 
     self.rows = levelData.rows
     self.cols = levelData.cols
@@ -159,11 +164,14 @@ function MyBoard:checkCell(cell)
     if cell.col ~= self.cols then
         for j=cell.col+1 , self.cols do
             local cell_right = self:getCell(cell.row,j)
-            if cell.nodeType == cell_right.nodeType then
-                listH [#listH + 1] = cell_right
-            else
-                break
+            if cell_right then
+                if cell.nodeType == cell_right.nodeType then
+                    listH [#listH + 1] = cell_right
+                else
+                    break
+                end
             end
+            
         end
     end
 
@@ -186,10 +194,12 @@ function MyBoard:checkCell(cell)
     if cell.row ~= self.rows then
         for j=cell.row+1 , self.rows do
             local cell_up = self:getCell(j,cell.col)
-            if cell.nodeType == cell_up.nodeType then
-                listH [#listH + 1] = cell_up
-            else
-                break
+            if cell_up then
+                if cell.nodeType == cell_up.nodeType then
+                    listH [#listH + 1] = cell_up
+                else
+                    break
+                end
             end
         end
     end
@@ -321,20 +331,13 @@ function MyBoard:changeSingedCell(onAnimationComplete)
     else
         for i=1,self.rows do
             for j=1,self.cols do
-
-
                 local y = i * NODE_PADDING + self.offsetY
                 local x = j * NODE_PADDING + self.offsetX
                 local cell_t = self.grid[i][j]
-
-
                 if cell_t then
                     cell_t:runAction(transition.sequence({
-                        cc.DelayTime:create(0.45),
-                        cc.MoveTo:create(0.78, cc.p(x, y)),
-                        cc.CallFunc:create(function()
-                            --self:showGrid()
-                        end)
+                        cc.DelayTime:create(0.2),
+                        cc.MoveTo:create(0.9, cc.p(x, y))
                     }))
                 end
             end
@@ -351,11 +354,12 @@ function MyBoard:changeSingedCell(onAnimationComplete)
 end
 
 function MyBoard:showGrid()
-    for i=1,self.rows +8 do
+    for i=1,self.rows * 2 do
         local sum = 0
         for j=1,self.cols do
-            if self.grid[i][j] then
+            if self.grid[i] and self.grid[i][j] then
                 sum = sum +1
+                print("row:",self.grid[i][j].row,"col:",self.grid[i][j].col)
             end
         end
         print("rows:",i , "sum :" ,sum)
@@ -370,18 +374,24 @@ end
 
 function MyBoard:swap(row1,col1,row2,col2,isAnimation,callBack)
     local temp
-    if self.grid[row1][col1] then
+    if self.grid[row1] and self.grid[row1][col1] then
         self.grid[row1][col1].row = row2
         self.grid[row1][col1].col = col2
     end
-    if self.grid[row2][col2] then
+    if self.grid[row2] and self.grid[row2][col2] then
         self.grid[row2][col2].row = row1
         self.grid[row2][col2].col = col2
     end
     
-    temp = self.grid[row1][col1] 
-    self.grid[row1][col1] = self.grid[row2][col2]
-    self.grid[row2][col2] = temp
+    if self.grid[row1] and self.grid[row2] then
+        temp = self.grid[row1][col1] 
+        self.grid[row1][col1] = self.grid[row2][col2]
+        self.grid[row2][col2] = temp
+
+        if self.grid[row2][col2] == nil or self.grid[row1][col1] == nil then
+            return
+        end
+    end
 
     if isAnimation ~= nil then
         if isAnimation  then
@@ -425,7 +435,7 @@ function MyBoard:onTouch(event, x, y)
                 self:changeSingedCell(true)
             end
         end)
-        
+        self:showGrid()
     end
     
     return true
