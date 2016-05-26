@@ -125,7 +125,7 @@ function MyBoard:ctor(levelData)
         self:changeSingedCell()
     end
 
-    scheduler:scheduleScriptFunc (function () 
+    self.bigHandel = scheduler:scheduleScriptFunc (function () 
         if isInTouch and isEnableTouch then
             if curSwapBeginRow == -1 or curSwapBeginCol == -1 then
                 return
@@ -587,6 +587,7 @@ function MyBoard:onEnter()
 end
 
 function MyBoard:onExit()
+    scheduler:unscheduleScriptEntry(self.bigHandel )
     GAME_CELL_EIGHT_ADD_SCALE = 1.0
     NODE_PADDING = 100 * GAME_CELL_STAND_SCALE
     self:removeAllEventListeners()
