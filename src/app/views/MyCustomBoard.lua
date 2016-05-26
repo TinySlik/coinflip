@@ -7,6 +7,8 @@ local MyBoard = class("MyBoard", function()
 end)
 
 local isInAnimation = false
+local isInTouch = false
+local isEnableTouch = true
 
 local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
 local NODE_ZORDER    = 0
@@ -19,9 +21,7 @@ local scheduler = cc.Director:getInstance():getScheduler()
 
 function MyBoard:ctor(levelData)
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
-
     cc.GameObject.extend(self):addComponent("components.behavior.EventProtocol"):exportMethods()
-
     self.batch = display.newNode()
     self.batch:setPosition(display.cx, display.cy)
     self:addChild(self.batch)
@@ -46,7 +46,7 @@ function MyBoard:ctor(levelData)
     self.cells = {}
     self.flipAnimationCount = 0
 
-    if self.rows <= 8 then
+    if self.cols <= 8 then
         GAME_CELL_EIGHT_ADD_SCALE = 1.0
         self.offsetX = -math.floor(NODE_PADDING * self.cols / 2) - NODE_PADDING / 2
         self.offsetY = -math.floor(NODE_PADDING * self.rows / 2) - NODE_PADDING / 2
@@ -78,7 +78,7 @@ function MyBoard:ctor(levelData)
     else
         self.offsetX = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
         self.offsetY = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
-        GAME_CELL_EIGHT_ADD_SCALE = 8.0 / self.rows
+        GAME_CELL_EIGHT_ADD_SCALE = 8.0 / self.cols
 
         NODE_PADDING = 100 * GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE
         -- create board, place all cells
@@ -113,8 +113,8 @@ function MyBoard:ctor(levelData)
         return self:onTouch(event.name, event.x, event.y)
     end)
     
-    if self:checkAll() then
-        self:changeSingedCell(true)
+    while self:checkAll() do
+        self:changeSingedCell()
     end
 end
 
@@ -309,7 +309,6 @@ function MyBoard:changeSingedCell(onAnimationComplete)
     end
 
     --self:showGrid()
-
     --填补self.grid空缺
     --或执行最后的所有动画步骤
 
@@ -340,7 +339,6 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 end
             end
         end
-        
         self.handle  = scheduler:scheduleScriptFunc (function () 
             scheduler:unscheduleScriptEntry(self.handle )
             if self:checkAll() then
@@ -371,20 +369,18 @@ end
 
 function MyBoard:swap(row1,col1,row2,col2)
     local temp
-    if self.grid[row1][col1] then
+    if self.grid[row1] and self.grid[row1][col1] then
         self.grid[row1][col1].row = row2
         self.grid[row1][col1].col = col2
     end
-    if self.grid[row2][col2] then
+    if self.grid[row2] and self.grid[row2][col2] then
         self.grid[row2][col2].row = row1
         self.grid[row2][col2].col = col1
     end
-    
     temp = self.grid[row1][col1] 
     self.grid[row1][col1] = self.grid[row2][col2]
     self.grid[row2][col2] = temp
 end
-
 
 function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack)
     if self.grid[row1][col1] == nil or self.grid[row2][col2] == nil then
@@ -414,22 +410,96 @@ function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack)
     end
 end
 
-function MyBoard:onTouch(event, x, y)
+function MyBoard:onTouch( event , x, y)
+    if not isEnableTouch then
+        return
+    end
     if event == "began" then
         local row,col = self:getRandC(x, y)
         curSwapBeginRow = row
         curSwapBeginCol = col
+        isInTouch = true
     end
+    if isInTouch and (event == "moved" or event == "ended"  )then
+        local padding = NODE_PADDING / 2
+        local cell_center = self.grid[curSwapBeginRow][curSwapBeginCol]
+        local cx, cy = cell_center:getPosition()
+        cx = cx + display.cx
+        cy = cy + display.cy
 
-    if event == "ended" then
-        local row,col = self:getRandC(x, y)
-        self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
-            function()
-                if self:checkAll() then
-                self:changeSingedCell(true)
-                end
+        if event == "ended" then
+            local p_a = cell_center:getAnchorPoint()
+            local x_a = (0.5 - p_a.x ) *  NODE_PADDING + curSwapBeginCol * NODE_PADDING + self.offsetX
+            local y_a = (0.5 - p_a.y) *  NODE_PADDING + curSwapBeginRow * NODE_PADDING + self.offsetY
+            cell_center:setAnchorPoint(cc.p(0.5,0.5))
+            cell_center:setPosition(cc.p(x_a  , y_a ))
+            isEnableTouch = false
+                cell_center:runAction(
+                    transition.sequence({
+                    cc.MoveTo:create(0.4,cc.p(curSwapBeginCol * NODE_PADDING + self.offsetX,curSwapBeginRow * NODE_PADDING + self.offsetY)),
+                    cc.CallFunc:create(function()
+                          isEnableTouch = true
+                    end)
+                }))
+                return true
+        end
+
+        if x < cx - 2*padding
+            or x > cx + 2*padding
+            or y < cy - 2*padding
+            or y > cy + 2*padding then
+            isInTouch = false
+
+            print("到达边界")
+            --划归锚点偏移
+            local p_a = cell_center:getAnchorPoint()
+            local x_a = (0.5 - p_a.x ) *  NODE_PADDING + curSwapBeginCol * NODE_PADDING + self.offsetX
+            local y_a = (0.5 - p_a.y) *  NODE_PADDING + curSwapBeginRow * NODE_PADDING + self.offsetY
+            cell_center:setAnchorPoint(cc.p(0.5,0.5))
+            cell_center:setPosition(cc.p(x_a  , y_a ))
+
+            --进入十字框以内
+
+            if event == "ended" then
+                isEnableTouch = false
+                cell_center:runAction(
+                    transition.sequence({
+                    cc.MoveTo:create(0.4,cc.p(curSwapBeginCol * NODE_PADDING + self.offsetX,curSwapBeginRow * NODE_PADDING + self.offsetY)),
+                    cc.CallFunc:create(function()
+                          isEnableTouch = true
+                    end)
+                }))
+                return true
             end
-        )
+
+            if (x >= cx - padding
+            and x <= cx + padding)
+            or (y >= cy - padding
+            and y <= cy + padding) then
+                -- local row,col = self:getRandC(x, y)
+                -- self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
+                --     function()
+                --         if self:checkAll() then
+                --         self:changeSingedCell(true)
+                --         end
+                --     end
+                --     )
+            else
+                isEnableTouch = false
+                cell_center:runAction(
+                    transition.sequence({
+                    cc.MoveTo:create(0.4,cc.p(curSwapBeginCol * NODE_PADDING + self.offsetX,curSwapBeginRow * NODE_PADDING + self.offsetY)),
+                    cc.CallFunc:create(function()
+                          isEnableTouch = true
+                    end)
+                }))
+                    
+            end
+        else
+            x_vec = (cx - x)/ NODE_PADDING * 0.3 + 0.5
+            y_vec = (cy - y)/ NODE_PADDING * 0.3 + 0.5
+            cell_center:setAnchorPoint(cc.p(x_vec,y_vec))
+        end
     end
     
     return true
