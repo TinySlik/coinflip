@@ -33,4 +33,62 @@ local Cell = class("Cell", function(nodeType)
     return sprite
 end)
 
+function Cell:Explod(CELL_STAND_SCALE)
+
+    local function zoom1(offset, time, onComplete)
+        local x, y = self:getPosition()
+        local size = self:getContentSize()
+        size.width = 200
+        size.height = 200
+
+        local scaleX = self:getScaleX() * (size.width + offset) / size.width
+        local scaleY = self:getScaleY() * (size.height - offset) / size.height
+
+        transition.moveTo(self, {y = y + offset, time = time})
+        transition.scaleTo(self, {
+            scaleX     = scaleX,
+            scaleY     = scaleY,
+            time       = time,
+            onComplete = onComplete,
+        })
+    end
+
+    local function zoom2(offset, time, onComplete)
+        local x, y = self:getPosition()
+        local size = self:getContentSize()
+        size.width = 200
+        size.height = 200
+
+        transition.moveTo(self, {y = y - offset, time = time / 2})
+        transition.scaleTo(self, {
+            scaleX     = CELL_STAND_SCALE,
+            scaleY     = CELL_STAND_SCALE,
+            time       = time,
+            onComplete = onComplete,
+        })
+    end
+
+    zoom1(40, 0.08, function()
+        zoom2(40, 0.09, function()
+            zoom1(20, 0.10, function()
+                zoom2(20, 0.11, function()
+                    self:removeSelf()
+                end)
+            end)
+        end)
+    end)
+
+    -- Cell:runAction(transition.sequence({
+    --                 cc.MoveTo:create(0.8, cc.p(X2,Y2)),
+    --                 cc.CallFunc:create(function()
+    --                     --改动锚点的渲染前后顺序，移动完成后回归原本zorder
+    --                     self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER)
+    --                     self:swap(row1,col1,row2,col2)
+    --                     callBack()
+    --                     isInAnimation = false   
+    --                 end)
+    --             }))
+end
+
+
 return Cell

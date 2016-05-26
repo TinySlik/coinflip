@@ -252,11 +252,12 @@ function MyBoard:checkCell(cell)
 end
 
 function MyBoard:changeSingedCell(onAnimationComplete)
-
     local DropList = {}
-
     --统计所有的最高掉落项
     local DropListFinal = {}
+
+    local cell_anim_time = 0.56
+    local drop_time = 0.9
 
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
@@ -290,7 +291,9 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 self.batch:removeChild(self.grid[row][col], true)
                 self.grid[row][col] = nil
             else
-                self.batch:removeChild(self.grid[row][col], true)
+                self.grid[row][col]:setGlobalZOrder(CELL_ZORDER + 1)
+                self.grid[row][col]:Explod(CELL_SCALE)
+                -- self.batch:removeChild(self.grid[row][col], true)
                 self.grid[row][col] = nil
             end
 
@@ -355,8 +358,8 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 local cell_t = self.grid[i][j]
                 if cell_t then
                     cell_t:runAction(transition.sequence({
-                        cc.DelayTime:create(0.2),
-                        cc.MoveTo:create(0.9, cc.p(x, y))
+                        cc.DelayTime:create(cell_anim_time),
+                        cc.MoveTo:create(drop_time, cc.p(x, y))
                     }))
                 end
             end
@@ -366,7 +369,7 @@ function MyBoard:changeSingedCell(onAnimationComplete)
             if self:checkAll() then
                 self:changeSingedCell(true)
             end
-        end, 1.23 , false)
+        end, cell_anim_time + drop_time , false)
     end
 end
 
@@ -410,11 +413,13 @@ function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack)
         return
     end
     if not isInAnimation then
+
             isInAnimation = true
         local X1,Y1 = col1 * NODE_PADDING + self.offsetX , row1  * NODE_PADDING + self.offsetY
         local X2,Y2 = col2 * NODE_PADDING + self.offsetX , row2  * NODE_PADDING + self.offsetY
         if callBack then
             --改动锚点的渲染前后顺序，移动时前置
+            self.grid[row1][col1]:setGlobalZOrder(CELL_ZORDER)
             self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER + 1)
 
             self.grid[row1][col1]:runAction(transition.sequence({
@@ -423,8 +428,8 @@ function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack)
                         --改动锚点的渲染前后顺序，移动完成后回归原本zorder
                         self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER)
                         self:swap(row1,col1,row2,col2)
+                        isInAnimation = false 
                         callBack()
-                        isInAnimation = false   
                     end)
                 }))
             self.grid[row2][col2]:runAction(cc.MoveTo:create(0.8, cc.p(X1,Y1)))
@@ -494,12 +499,31 @@ function MyBoard:onTouch( event , x, y)
 
                 local row,col = self:getRandC(x, y)
 
+                --防止移动超过一格的情况
+
+                if row ~= -1 and row - curSwapBeginRow > 1 then
+                    row = curSwapBeginRow + 1
+                end
+                if row ~= -1 and curSwapBeginRow - row > 1 then
+                   row = curSwapBeginRow - 1
+                end
+                if col ~= -1 and col -  curSwapBeginCol > 1 then
+                    col = curSwapBeginCol + 1
+                end
+                if col ~= -1 and curSwapBeginCol - col  > 1 then
+                    col = curSwapBeginCol - 1
+                end
+
                 isEnableTouch = false
                 self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
                     function()
                         isEnableTouch = true
                         if self:checkAll() then
-                        self:changeSingedCell(true)
+                            self:changeSingedCell(true)
+                        else
+                            self:swapWithAnimation(curSwapBeginRow,curSwapBeginCol,row,col,function() 
+                                print("swap fail")
+                            end)
                         end
                     end
                     )
