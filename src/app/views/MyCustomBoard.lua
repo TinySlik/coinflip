@@ -11,7 +11,7 @@ local isInTouch = false
 local isEnableTouch = true
 local swapDruTime = 0.6
 local cell_anim_time = 0.68
-local drop_time = 0.9
+local drop_time = 1.64
 
 local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
 local NODE_ZORDER    = 0
@@ -363,10 +363,21 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 local x = v.col * NODE_PADDING + self.offsetX
                 local cell_t = self.grid[i][v.col]
                 if cell_t then
-                    cell_t:runAction(transition.sequence({
-                        cc.DelayTime:create(cell_anim_time),
-                        cc.MoveTo:create(drop_time, cc.p(x, y))
-                    }))
+                    local x_t,y_t = cell_t:getPosition()
+                    if(math.abs(y_t - y) > NODE_PADDING/2 ) then
+                        local rand = math.random(100)/100.0 + 0.4
+                        cell_t:runAction(transition.sequence({
+                            cc.DelayTime:create(cell_anim_time + cell_t.row / self.rows * 0.24  ),
+                            cc.ScaleTo:create(0.3, CELL_SCALE * 1.13, CELL_SCALE * 0.93 ),
+                            cc.ScaleTo:create(0.5, CELL_SCALE * 0.95, CELL_SCALE * 1.08 ),
+                            cc.ScaleTo:create(0.6, CELL_SCALE * 1.055, CELL_SCALE * 0.97 ),
+                            cc.ScaleTo:create(0.8, CELL_SCALE * 1.0, CELL_SCALE * 1.0 )
+                        }))
+                        cell_t:runAction(transition.sequence({
+                            cc.DelayTime:create(cell_anim_time + cell_t.row / self.rows * 0.24  ),
+                            cc.EaseElasticOut:create(cc.MoveTo:create(drop_time - 0.24 - 0.24 , cc.p(x, y)),rand) 
+                        }))
+                    end 
                 end
             end
         end
