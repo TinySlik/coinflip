@@ -33,7 +33,16 @@ local Cell = class("Cell", function(nodeType)
     return sprite
 end)
 
-function Cell:Explod(CELL_STAND_SCALE)
+function Cell:Explod(CELL_STAND_SCALE,cutOrder)
+
+    local function delays(onComlete)
+        self:runAction(transition.sequence({
+                        cc.DelayTime:create((cutOrder - 1)* 0.05 ),
+                        cc.CallFunc:create(function()
+                              onComlete()
+                        end)
+                    }))
+    end
 
     local function zoom1(offset, time, onComplete)
         local x, y = self:getPosition()
@@ -68,26 +77,26 @@ function Cell:Explod(CELL_STAND_SCALE)
         })
     end
 
-    zoom1(40, 0.08, function()
-        zoom2(40, 0.09, function()
-            zoom1(20, 0.10, function()
-                zoom2(20, 0.11, function()
-                    self:removeSelf()
+    delays(function()
+        zoom1(40, 0.08, function()
+            zoom2(40, 0.09, function()
+                zoom1(20, 0.10, function()
+                    zoom2(20, 0.11, function()
+                        self:runAction(
+                            transition.sequence({
+                            cc.ScaleTo:create(0.30,0.1),
+                            cc.CallFunc:create(function()
+                                  self:removeSelf()
+                            end)
+                        }))
+                        self:runAction(cc.FadeTo:create(0.30, 0.2))
+                        self:runAction(cc.RotateBy:create(0.30, 800))
+                    end)
                 end)
             end)
         end)
     end)
-
-    -- Cell:runAction(transition.sequence({
-    --                 cc.MoveTo:create(0.8, cc.p(X2,Y2)),
-    --                 cc.CallFunc:create(function()
-    --                     --改动锚点的渲染前后顺序，移动完成后回归原本zorder
-    --                     self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER)
-    --                     self:swap(row1,col1,row2,col2)
-    --                     callBack()
-    --                     isInAnimation = false   
-    --                 end)
-    --             }))
+        
 end
 
 
