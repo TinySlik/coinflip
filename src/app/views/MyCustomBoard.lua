@@ -451,6 +451,7 @@ function MyBoard:onTouch( event , x, y)
         curSwapBeginRow = row
         curSwapBeginCol = col
         isInTouch = true
+        self.grid[curSwapBeginRow][curSwapBeginCol]:setGlobalZOrder(CELL_ZORDER+1)
     end
     if isInTouch and (event == "moved" or event == "ended"  )then
         local padding = NODE_PADDING / 2
@@ -475,6 +476,7 @@ function MyBoard:onTouch( event , x, y)
                     end)
                 }))
             cell_center:runAction(cc.ScaleTo:create(0.5,CELL_SCALE))
+            self.grid[curSwapBeginRow][curSwapBeginCol]:setGlobalZOrder(CELL_ZORDER)
             return true
         end
 
@@ -521,7 +523,7 @@ function MyBoard:onTouch( event , x, y)
                         if self:checkAll() then
                             self:changeSingedCell(true)
                         else
-                            self:swapWithAnimation(curSwapBeginRow,curSwapBeginCol,row,col,function() 
+                            self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function() 
                                 print("swap fail")
                             end)
                         end
@@ -535,6 +537,7 @@ function MyBoard:onTouch( event , x, y)
                     cc.MoveTo:create(0.4,cc.p(curSwapBeginCol * NODE_PADDING + self.offsetX,curSwapBeginRow * NODE_PADDING + self.offsetY)),
                     cc.CallFunc:create(function()
                           isEnableTouch = true
+                          self.grid[curSwapBeginRow][curSwapBeginCol]:setGlobalZOrder(CELL_ZORDER)
                     end)
                 }))
                 cell_center:runAction(cc.ScaleTo:create(0.5,CELL_SCALE))
