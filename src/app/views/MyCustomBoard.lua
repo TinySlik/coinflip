@@ -69,7 +69,6 @@ function MyBoard:ctor(levelData)
 
                 local node = self.grid[row][col]
                 if node ~= Levels.NODE_IS_EMPTY then
-                    -- local cell = Cell.new(node)
                     local cell = Cell.new()
                     cell.isNeedClean = false
                     cell:setPosition(x, y)
@@ -381,12 +380,15 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                 end
             end
         end
-        self.handle  = scheduler:scheduleScriptFunc (function () 
-            scheduler:unscheduleScriptEntry(self.handle )
-            if self:checkAll() then
-                self:changeSingedCell(true)
-            end
-        end, cell_anim_time + drop_time , false)
+        self:runAction(transition.sequence(
+        {
+            cc.DelayTime:create(cell_anim_time + drop_time),
+            cc.CallFunc:create(function()
+                        if self:checkAll() then
+                            self:changeSingedCell(true)
+                        end
+                    end)
+        }))
     end
 end
 
