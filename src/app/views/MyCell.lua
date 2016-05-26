@@ -19,17 +19,24 @@ local ourCellsName =
     {"#xia.png"},
 }
 
-local Cell = class("Cell", function(nodeType)
+local Cell = class("Cell", function(animationTime,sCale,nodeType)
     local index
     if nodeType then
         index = nodeType
-        if nodeType == 1 then
-        end
     else
         index =  math.floor(math.random(6)+ 1) 
     end
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
+
+    if animationTime ~= nil and animationTime > 0 then
+        sprite:setOpacity(0)
+        sprite:setScale(0.1)
+        sprite:runAction(cc.ScaleTo:create(animationTime,sCale))
+        sprite:runAction(cc.FadeTo:create(animationTime, 225))
+        sprite:runAction(cc.RotateBy:create(animationTime, -(360*3)))
+    end
+
     return sprite
 end)
 
@@ -96,7 +103,6 @@ function Cell:Explod(CELL_STAND_SCALE,cutOrder)
             end)
         end)
     end)
-        
 end
 
 

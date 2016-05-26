@@ -9,7 +9,7 @@ end)
 local isInAnimation = false
 local isInTouch = false
 local isEnableTouch = true
-local swapDruTime = 0.8
+local swapDruTime = 0.6
 local cell_anim_time = 0.68
 local drop_time = 0.9
 
@@ -262,9 +262,6 @@ function MyBoard:changeSingedCell(onAnimationComplete)
     local DropList = {}
     --统计所有的最高掉落项
     local DropListFinal = {}
-
-    
-
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
             local drop_pad = 1
@@ -283,8 +280,12 @@ function MyBoard:changeSingedCell(onAnimationComplete)
                     end
                 end
             end
-
-            local cell = Cell.new()
+            local cell
+            if onAnimationComplete then
+                cell = Cell.new(cell_anim_time,CELL_SCALE)
+            else
+                cell = Cell.new()
+            end
             DropList [#DropList + 1] = cell
             DropListFinal [#DropListFinal + 1] = cell
             cell.isNeedClean = false
@@ -299,7 +300,6 @@ function MyBoard:changeSingedCell(onAnimationComplete)
             else
                 self.grid[row][col]:setGlobalZOrder(CELL_ZORDER + 1)
                 self.grid[row][col]:Explod(CELL_SCALE,self.grid[row][col].cutOrder )
-                -- self.batch:removeChild(self.grid[row][col], true)
                 self.grid[row][col] = nil
             end
 
@@ -358,10 +358,10 @@ function MyBoard:changeSingedCell(onAnimationComplete)
         end 
     else
         for i=1,self.rows do
-            for j=1,self.cols do
+            for j , v in pairs(DropListFinal) do
                 local y = i * NODE_PADDING + self.offsetY
-                local x = j * NODE_PADDING + self.offsetX
-                local cell_t = self.grid[i][j]
+                local x = v.col * NODE_PADDING + self.offsetX
+                local cell_t = self.grid[i][v.col]
                 if cell_t then
                     cell_t:runAction(transition.sequence({
                         cc.DelayTime:create(cell_anim_time),
@@ -539,7 +539,7 @@ function MyBoard:onTouch( event , x, y)
                             self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function()
                                 isEnableTouch = true 
                                 print("swap fail")
-                            end)
+                            end,0.5)
                         end
                     end
                     )
