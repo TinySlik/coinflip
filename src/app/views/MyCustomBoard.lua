@@ -127,10 +127,12 @@ function MyBoard:ctor(levelData)
             if curSwapBeginRow == -1 or curSwapBeginCol == -1 then
                 return
             else
-                local cell_c = self.grid[curSwapBeginRow][curSwapBeginCol] 
-                local sc = cell_c:getScaleX()
-                if sc < CELL_BIG_SCALE * CELL_SCALE then
-                    cell_c:setScale( ( CELL_BIG_SCALE * CELL_SCALE - 1.0 ) / 8 +  sc )
+                if self.grid[curSwapBeginRow] and self.grid[curSwapBeginRow][curSwapBeginCol] then
+                    local cell_c = self.grid[curSwapBeginRow][curSwapBeginCol] 
+                    local sc = cell_c:getScaleX()
+                    if sc < CELL_BIG_SCALE * CELL_SCALE then
+                        cell_c:setScale( ( CELL_BIG_SCALE * CELL_SCALE - 1.0 ) / 8 +  sc )
+                    end
                 end
             end
         end
@@ -428,7 +430,7 @@ function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack)
                         --改动锚点的渲染前后顺序，移动完成后回归原本zorder
                         self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER)
                         self:swap(row1,col1,row2,col2)
-                        isInAnimation = false 
+                        isInAnimation = false
                         callBack()
                     end)
                 }))
@@ -519,11 +521,13 @@ function MyBoard:onTouch( event , x, y)
                 isEnableTouch = false
                 self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
                     function()
-                        isEnableTouch = true
+                        
                         if self:checkAll() then
+                            isEnableTouch = true
                             self:changeSingedCell(true)
                         else
-                            self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function() 
+                            self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function()
+                                isEnableTouch = true 
                                 print("swap fail")
                             end)
                         end
