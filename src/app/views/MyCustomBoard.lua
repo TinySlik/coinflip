@@ -433,8 +433,8 @@ function MyBoard:swapWithAnimation(row1,col1,row2,col2,callBack,timeScale)
         return
     end
     if not isInAnimation then
-
-            isInAnimation = true
+        isEnableTouch = false
+        isInAnimation = true
         local X1,Y1 = col1 * NODE_PADDING + self.offsetX , row1  * NODE_PADDING + self.offsetY
         local X2,Y2 = col2 * NODE_PADDING + self.offsetX , row2  * NODE_PADDING + self.offsetY
         local moveTime = swapDruTime 
@@ -542,7 +542,6 @@ function MyBoard:onTouch( event , x, y)
                     col = curSwapBeginCol - 1
                 end
 
-                isEnableTouch = false
                 self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
                     function()
                         self:checkCell(self.grid[row][col])
@@ -551,6 +550,7 @@ function MyBoard:onTouch( event , x, y)
                             self:changeSingedCell(true)
                         else
                             self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function()
+                                isEnableTouch = true
                             end,0.5)
                         end
                     end
