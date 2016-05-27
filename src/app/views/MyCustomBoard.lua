@@ -57,61 +57,39 @@ function MyBoard:ctor(levelData)
         self.offsetY = -math.floor(NODE_PADDING * self.rows / 2) - NODE_PADDING / 2
         NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
         CELL_SCALE = GAME_CELL_STAND_SCALE  * 1.65
-        -- create board, place all cells
-        for row = 1, self.rows do
-            local y = row * NODE_PADDING + self.offsetY
-            for col = 1, self.cols do
-                local x = col * NODE_PADDING + self.offsetX
-                local nodeSprite = display.newSprite("#BoardNode.png", x, y)
-                nodeSprite:setScale(GAME_CELL_STAND_SCALE)
-                self.batch:addChild(nodeSprite, NODE_ZORDER)
-
-                local node = self.grid[row][col]
-                if node ~= Levels.NODE_IS_EMPTY then
-                    local cell = Cell.new()
-                    cell.isNeedClean = false
-                    cell:setPosition(x, y)
-                    cell:setScale(CELL_SCALE)
-                    cell.row = row
-                    cell.col = col
-                    self.grid[row][col] = cell
-                    self.cells[#self.cells + 1] = cell
-                    self.batch:addChild(cell, CELL_ZORDER)
-                end
-            end
-        end
     else
         self.offsetX = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
         self.offsetY = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
         GAME_CELL_EIGHT_ADD_SCALE = 8.0 / self.cols
         CELL_SCALE = GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE * 1.65
-
         NODE_PADDING = 100 * GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE
-        -- create board, place all cells
-        for row = 1, self.rows do
-            local y = row * NODE_PADDING + self.offsetY
-            for col = 1, self.cols do
-                local x = col * NODE_PADDING + self.offsetX
-                local nodeSprite = display.newSprite("#BoardNode.png", x, y)
-                nodeSprite:setScale(GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE)
-                self.batch:addChild(nodeSprite, NODE_ZORDER)
+    end
 
-                local node = self.grid[row][col]
-                if node ~= Levels.NODE_IS_EMPTY then
-                    -- local cell = Cell.new(node)
-                    local cell = Cell.new()
-                    cell.isNeedClean = false
-                    cell:setPosition(x, y)
-                    cell:setScale(CELL_SCALE)
-                    cell.row = row
-                    cell.col = col
-                    self.grid[row][col] = cell
-                    self.cells[#self.cells + 1] = cell
-                    self.batch:addChild(cell, CELL_ZORDER)
-                end
+
+    for row = 1, self.rows do
+        local y = row * NODE_PADDING + self.offsetY
+        for col = 1, self.cols do
+            local x = col * NODE_PADDING + self.offsetX
+            local nodeSprite = display.newSprite("#BoardNode.png", x, y)
+            nodeSprite:setScale(CELL_SCALE/1.65)
+            self.batch:addChild(nodeSprite, NODE_ZORDER)
+
+            local node = self.grid[row][col]
+            if node ~= Levels.NODE_IS_EMPTY then
+                local cell = Cell.new()
+                cell.isNeedClean = false
+                cell:setPosition(x, y)
+                cell:setScale(CELL_SCALE)
+                cell.row = row
+                cell.col = col
+                self.grid[row][col] = cell
+                self.cells[#self.cells + 1] = cell
+                self.batch:addChild(cell, CELL_ZORDER)
             end
         end
     end
+
+    self:lined()
 
     self:setNodeEventEnabled(true)
     self:setTouchEnabled(true)
@@ -138,6 +116,30 @@ function MyBoard:ctor(levelData)
             end
         end
     end, 1.0/60 , false)
+end
+
+function MyBoard:lined(isAnimation,time)
+    if isAnimation then
+        for row = 1, self.rows do
+            local y = row * NODE_PADDING + self.offsetY
+            for col = 1, self.cols do
+                local x = col * NODE_PADDING + self.offsetX
+                cell = self.grid[row][col]
+                cell:runAction(cc.MoveTo:create(time,cc.p(x, y)))
+                cell:setScale(CELL_SCALE)
+            end
+        end
+    else
+        for row = 1, self.rows do
+            local y = row * NODE_PADDING + self.offsetY
+            for col = 1, self.cols do
+                local x = col * NODE_PADDING + self.offsetX
+                cell = self.grid[row][col]
+                cell:setPosition(x, y)
+                cell:setScale(CELL_SCALE)
+            end
+        end
+    end
 end
 
 function MyBoard:checkLevelCompleted()
@@ -171,7 +173,6 @@ function MyBoard:checkNotClean()
     isEnableTouch = true
     return false
 end
-
 
 function MyBoard:checkCell(cell)
     local listH = {}
@@ -592,6 +593,47 @@ function MyBoard:getRandC(x,y)
         end
     end
     return -1 , -1
+end
+
+--全局乱序
+function MyBoard:shuffle(callBack)
+    local temp = nil
+    local big_time = 0.4
+    local move_time = 0.6
+    math.randomseed(tostring(os.time()):reverse():sub(1, 6))
+    for i= 1  , self.cols*self.rows -1 do
+        temp = self.cells[i]
+        local rd =  math.floor(math.random(self.cols*self.rows - i + 1)) + i - 1
+        self.cells[i] = self.cells[rd]
+        self.cells[rd] = temp
+    end
+    for i=1,self.rows do
+        for j=1,self.cols do
+            self.cells[self.cols * (i-1)  + j].row = i
+            self.cells[self.cols * (i-1)  + j].col = j
+            self.grid[i][j] = self.cells[self.cols * (i-1)  + j]
+        end
+    end
+
+    if callBack then
+        isEnableTouch = false
+        self:lined(true,big_time+move_time)
+        self:runAction(transition.sequence(
+        {
+            cc.DelayTime:create(big_time + move_time),
+            cc.CallFunc:create(function()
+                                callBack()
+                              if self:checkAll() then
+                                  self:changeSingedCell(true)
+                              end
+                        end)
+        }))
+    else
+        while self:checkAll() do
+            self:changeSingedCell()
+        end
+        self:lined()
+    end
 end
 
 function MyBoard:onEnter()
