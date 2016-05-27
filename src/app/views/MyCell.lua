@@ -105,5 +105,4 @@ function Cell:Explod(CELL_STAND_SCALE,cutOrder)
     end)
 end
 
-
 return Cell
