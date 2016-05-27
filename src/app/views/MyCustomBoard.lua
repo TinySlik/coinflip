@@ -551,7 +551,6 @@ function MyBoard:onTouch( event , x, y)
                             self:changeSingedCell(true)
                         else
                             self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function()
-                                isEnableTouch = true 
                             end,0.5)
                         end
                     end
