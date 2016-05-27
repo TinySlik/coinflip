@@ -24,7 +24,6 @@ local curSwapBeginRow = -1
 local curSwapBeginCol = -1
 
 local scheduler = cc.Director:getInstance():getScheduler()
-
 function MyBoard:ctor(levelData)
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
     cc.GameObject.extend(self):addComponent("components.behavior.EventProtocol"):exportMethods()
@@ -158,6 +157,10 @@ function MyBoard:checkAll()
     for _, cell in pairs(self.cells) do
         self:checkCell(cell)
     end
+    return self:checkNotClean()
+end
+
+function MyBoard:checkNotClean()
     --check同时管理触摸执行
     for i,v in pairs (self.cells) do
         if v.isNeedClean  then
@@ -168,6 +171,7 @@ function MyBoard:checkAll()
     isEnableTouch = true
     return false
 end
+
 
 function MyBoard:checkCell(cell)
     local listH = {}
@@ -199,7 +203,6 @@ function MyBoard:checkCell(cell)
             
         end
     end
-
     --目前的当前格子的左右待消除对象(连同自己)
 
     if #listH < 3 then
@@ -209,12 +212,10 @@ function MyBoard:checkCell(cell)
             v.isNeedClean = true
             v.cutOrder = i
         end
-
     end
     for i=2,#listH do
         listH[i] = nil
     end
-
     --判断格子的上边的待消除对象
 
     if cell.row ~= self.rows then
@@ -224,6 +225,7 @@ function MyBoard:checkCell(cell)
                 if cell.nodeType == cell_up.nodeType then
                     listH [#listH + 1] = cell_up
                 else
+                    
                     break
                 end
             end
@@ -231,12 +233,11 @@ function MyBoard:checkCell(cell)
     end
 
     local i=cell.row
-
     --格子中下面对象是否相同的遍历
     while i > 1 do
         i = i -1
+        local cell_down = self:getCell(i,cell.col)
         if cell_down then
-            local cell_down = self:getCell(i,cell.col)
             if cell.nodeType == cell_down.nodeType then
                 listH [#listH + 1] = cell_down
             else
@@ -544,14 +545,13 @@ function MyBoard:onTouch( event , x, y)
                 isEnableTouch = false
                 self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,
                     function()
-                        
-                        if self:checkAll() then
-                            isEnableTouch = true
+                        self:checkCell(self.grid[row][col])
+                        self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
+                        if self:checkNotClean() then
                             self:changeSingedCell(true)
                         else
                             self:swapWithAnimation(row,col,curSwapBeginRow,curSwapBeginCol,function()
                                 isEnableTouch = true 
-                                print("swap fail")
                             end,0.5)
                         end
                     end
