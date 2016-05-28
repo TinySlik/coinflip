@@ -133,6 +133,16 @@ function MyBoard:ctor(levelData)
                 p1 = cc.p(-helpDis,0)
             end
 
+            if isInTouch and 
+                (
+                    (self.checkRdCell.row == curSwapBeginRow and self.checkRdCell.col == curSwapBeginCol)
+                    or
+                    (cell2.row == curSwapBeginRow and cell2.col == curSwapBeginCol)
+                    ) 
+                then
+                return
+            end
+
             self.checkRdCell:runAction(transition.sequence({
                             cc.MoveBy:create(0.4,p1),
                             cc.MoveBy:create(0.4,p2),
