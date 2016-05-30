@@ -108,7 +108,6 @@ function MyBoard:ctor(levelData)
         waitTime = waitTime + 1.0 / 60
         if waitTime > 5.0 then
             waitTime = 0
-            print("help")
             local p1 = cc.p(0,0)
             local p2 = cc.p(0,0)
             local cell2 = nil
@@ -209,7 +208,7 @@ function MyBoard:checkAll()
         self.checkRdCell = nil
     else
         if self.checkRes > 0 then
-            print(self.checkRdCell . row ,self.checkRdCell . col,self.checkRes )
+            --print(self.checkRdCell . row ,self.checkRdCell . col,self.checkRes )
         else
             self:shuffle(function() end)
         end
