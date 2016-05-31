@@ -6,6 +6,7 @@ local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
 
+
 local swapDruTime = 0.6
 local cell_anim_time = 0.68
 local drop_time = 1.64
@@ -154,6 +155,7 @@ function MyBoard:ctor(levelData)
                         }))
         end
     end , 1.0/60 , false)
+    self:suffleSheet(self.cells)
 end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
@@ -274,7 +276,7 @@ function MyBoard:onTouch( event , x, y)
             return false 
         end
         isInTouch = true
-        self.grid[curSwapBeginRow][curSwapBeginCol]:setGlobalZOrder(CELL_ZORDER+1)
+        self.grid[curSwapBeginRow][curSwapBeginCol]:setLocalZOrder(CELL_ZORDER+1)
         return true
     end
     if isInTouch and (event == "moved" or event == "ended"  )then
@@ -303,7 +305,7 @@ function MyBoard:onTouch( event , x, y)
                     end)
                 }))
             cell_center:runAction(cc.ScaleTo:create(swapDruTime/2,CELL_SCALE))
-            self.grid[curSwapBeginRow][curSwapBeginCol]:setGlobalZOrder(CELL_ZORDER)
+            self.grid[curSwapBeginRow][curSwapBeginCol]:setLocalZOrder(CELL_ZORDER)
         end
         if event == "ended" then
             AnchBack()
@@ -357,7 +359,9 @@ end
 function MyBoard:checkCell(cell,isNotClean)
     local isNeedAnim = 0
     local listH = {}
+    local listV = {}
     listH [#listH + 1] = cell
+    listV [#listV + 1] = cell
     local i=cell.col
     --格子中左边对象是否相同的遍历
     while i > 1 do
@@ -386,19 +390,18 @@ function MyBoard:checkCell(cell,isNotClean)
     end
     --目前的当前格子的左右待消除对象(连同自己)
     if #listH < 3 then
+        listH = {}
     else
         isNeedAnim = 1
         -- print("find a 3 coup H cell")
         if isNotClean then
         else
+            -- self:dispatchEvent({name = GAME_CELL_COMPELETE_THREE })
             for i,v in pairs(listH) do
                 v.isNeedClean = true
                 v.cutOrder = i
             end
         end
-    end
-    for i=2,#listH do
-        listH[i] = nil
     end
     --判断格子的上边的待消除对象
     if cell.row ~= self.rows then
@@ -406,9 +409,8 @@ function MyBoard:checkCell(cell,isNotClean)
             local cell_up = self:getCell(j,cell.col)
             if cell_up then
                 if cell.nodeType == cell_up.nodeType then
-                    listH [#listH + 1] = cell_up
+                    listV [#listV + 1] = cell_up
                 else
-                    
                     break
                 end
             end
@@ -421,25 +423,81 @@ function MyBoard:checkCell(cell,isNotClean)
         local cell_down = self:getCell(i,cell.col)
         if cell_down then
             if cell.nodeType == cell_down.nodeType then
-                listH [#listH + 1] = cell_down
+                listV [#listV + 1] = cell_down
             else
                 break
             end
         end
     end
-    if #listH < 3 then
-        for i=2,#listH do
-            listH[i] = nil
-        end
+    if #listV < 3 then
+        listV = {}
     else
         isNeedAnim = 1
         if isNotClean then
         else
-            for i,v in pairs(listH) do
+            for i,v in pairs(listV) do
                 v.isNeedClean = true
                 v.cutOrder = i
             end
         end
+    end
+    --枚举量 代表
+    --1 横向4个
+    --2 纵向4个
+    --3 5个
+    --4 6个消除
+
+    --对应三级奖励
+    if #listV == 4 or #listH == 4  then
+        local isCan = true
+        for i,v in pairs(listV) do
+            if v.Special and v.Special  > 0  then
+                isCan = false
+            end
+        end
+        for i,v in pairs(listH) do
+            if v.Special and v.Special  > 0 then
+                isCan = false
+            end
+        end
+        if isCan then
+            if #listV == 4 and #listH < 4  then
+                cell.Special = 2
+            elseif #listH == 4 and #listV < 4  then
+                cell.Special = 1
+            end
+        end
+    end
+    --对应2级奖励
+    if #listV == 5 or #listH == 5 then
+        local isCan = true
+        for i,v in pairs(listV) do
+            if v.Special and v.Special  > 0  then
+                v.Special = nil
+            end
+        end
+        for i,v in pairs(listH) do
+            if v.Special and v.Special  > 0  then
+                v.Special = nil
+            end
+        end
+        if isCan then
+            cell.Special = 3
+        end
+    end
+    --对应1级奖励
+    if #listV + #listH >= 6 then
+        for i,v in pairs(listV) do
+            if v.Special and v.Special  > 0  then
+                v.Special = nil
+            end
+        end
+        for i,v in pairs(listH) do
+            if v.Special and v.Special  > 0  then
+                v.Special = nil
+            end
+        end
+        cell.Special = 4
     end
     return isNeedAnim
 end
@@ -450,47 +508,60 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
     local DropListFinal = {}
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
-            local drop_pad = 1
-            local row = v.row
-            local col = v.col
-            local x = col * NODE_PADDING + self.offsetX
-            local y = (self.rows + 1)* NODE_PADDING + self.offsetY
-            for i,v in pairs(DropList) do
-                if col == v.col then
-                    drop_pad = drop_pad + 1
-                    y = y + NODE_PADDING
-                    for i2,v2 in pairs(DropListFinal) do
-                        if v2.col == v.col then
-                            table.remove(DropListFinal,i2)
+            if v.Special and v.Special > 0 then
+                v.isNeedClean = false
+                if v.Special == 1 then
+                    self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_H })
+                elseif v.Special == 2 then
+                    self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_V })
+                elseif v.Special == 3 then
+                    self:dispatchEvent({name = GAME_CELL_COMPELETE_FIVE })
+                elseif v.Special == 4 then
+                    self:dispatchEvent({name = GAME_CELL_COMPELETE_T })
+                end
+                v:Change()
+            else
+                local drop_pad = 1
+                local row = v.row
+                local col = v.col
+                local x = col * NODE_PADDING + self.offsetX
+                local y = (self.rows + 1)* NODE_PADDING + self.offsetY
+                for i,v in pairs(DropList) do
+                    if col == v.col then
+                        drop_pad = drop_pad + 1
+                        y = y + NODE_PADDING
+                        for i2,v2 in pairs(DropListFinal) do
+                            if v2.col == v.col then
+                                table.remove(DropListFinal,i2)
+                            end
                         end
                     end
                 end
+                local cell
+                if onAnimationComplete then
+                    cell = Cell.new(cell_anim_time,CELL_SCALE)
+                else
+                    cell = Cell.new()
+                end
+                DropList [#DropList + 1] = cell
+                DropListFinal [#DropListFinal + 1] = cell
+                cell.isNeedClean = false
+                cell:setPosition(x, y)
+                cell:setScale(CELL_SCALE)
+                cell.row = self.rows + drop_pad
+                cell.col = col
+                self.grid[self.rows +  drop_pad][col] = cell
+                if onAnimationComplete == nil then
+                    self.batch:removeChild(self.grid[row][col], true)
+                    self.grid[row][col] = nil
+                else
+                    self.grid[row][col]:setLocalZOrder(CELL_ZORDER + 1)
+                    self.grid[row][col]:Explod(CELL_SCALE,self.grid[row][col].cutOrder )
+                    self.grid[row][col] = nil
+                end
+                self.cells[i] = cell
+                self.batch:addChild(cell, CELL_ZORDER)
             end
-            local cell
-            if onAnimationComplete then
-                cell = Cell.new(cell_anim_time,CELL_SCALE)
-            else
-                cell = Cell.new()
-            end
-            DropList [#DropList + 1] = cell
-            DropListFinal [#DropListFinal + 1] = cell
-            cell.isNeedClean = false
-            cell:setPosition(x, y)
-            cell:setScale(CELL_SCALE)
-            cell.row = self.rows + drop_pad
-            cell.col = col
-            self.grid[self.rows +  drop_pad][col] = cell
-            if onAnimationComplete == nil then
-                self.batch:removeChild(self.grid[row][col], true)
-                self.grid[row][col] = nil
-            else
-                self.grid[row][col]:setGlobalZOrder(CELL_ZORDER + 1)
-                self.grid[row][col]:Explod(CELL_SCALE,self.grid[row][col].cutOrder )
-                self.grid[row][col] = nil
-            end
-
-            self.cells[i] = cell
-            self.batch:addChild(cell, CELL_ZORDER)
         end
     end
     local temp = nil
@@ -543,7 +614,6 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
         if timeScale then
             timeSc = timeScale
         end
-        
         
         for i=1,self.rows do
             for j , v in pairs(DropListFinal) do
@@ -665,12 +735,12 @@ function MyBoard:swap(row1,col1,row2,col2,callBack,timeScale)
         end
         if callBack then
             --改动锚点的渲染前后顺序，移动时前置
-            self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER + 1)
+            self.grid[row2][col2]:setLocalZOrder(CELL_ZORDER + 1)
             self.grid[row1][col1]:runAction(transition.sequence({
                     cc.MoveTo:create(moveTime, cc.p(X2,Y2)),
                     cc.CallFunc:create(function()
                         --改动锚点的渲染前后顺序，移动完成后回归原本zorder
-                        self.grid[row2][col2]:setGlobalZOrder(CELL_ZORDER)
+                        self.grid[row2][col2]:setLocalZOrder(CELL_ZORDER)
                         self:swap(row1,col1,row2,col2)
                         isInAnimation = false
                         callBack()
@@ -712,6 +782,7 @@ function MyBoard:shuffle(callBack)
                             end
                         end)
         }))
+        self:suffleSheet(self.cells)
     else
         while self:checkAll() do
             self:changeSingedCell()

@@ -24,7 +24,7 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     if nodeType then
         index = nodeType
     else
-        index =  math.floor(math.random(6)) 
+        index =  math.floor(math.random(4)) 
     end
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
@@ -36,7 +36,16 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
         sprite:runAction(cc.FadeTo:create(animationTime, 225))
         sprite:runAction(cc.RotateBy:create(animationTime, -(360*3)))
     end
-
+    sprite.Label = cc.ui.UILabel.new({
+    UILabelType = 1,
+    text  = "",
+    font  = "UIFont.fnt",
+    x     = sprite:getContentSize().width / 2  ,
+    y     = sprite:getContentSize().height / 2 ,
+    align = cc.ui.TEXT_ALIGN_CENTER,
+    valign = cc.ui.TEXT_VALIGN_CENTER,
+    })
+    sprite:addChild(sprite.Label,1002)
     return sprite
 end)
 
@@ -103,6 +112,18 @@ function Cell:Explod(CELL_STAND_SCALE,cutOrder)
             end)
         end)
     end)
+end
+
+--0.58 sumtime
+function Cell:Change()
+    self.Label:setString(string.format("%d", tostring(self.Special)))
+    if self.Special then
+        if self.Special == 1 then
+        elseif self.Special == 2 then
+        elseif self.Special == 3 then
+        elseif self.Special == 4 then
+        end
+    end
 end
 
 return Cell

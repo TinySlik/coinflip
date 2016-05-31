@@ -27,6 +27,11 @@ function PlayLevelScene:ctor(levelIndex)
     self.board:addEventListener("LEVEL_COMPLETED", handler(self, self.onLevelCompleted))
     self:addChild(self.board)
 
+    self.board:addEventListener(GAME_CELL_COMPELETE_FOUR_H, handler(self, self.GetFourCellsCall_H))
+    self.board:addEventListener(GAME_CELL_COMPELETE_FOUR_V, handler(self, self.GetFourCellsCall_V))
+    self.board:addEventListener(GAME_CELL_COMPELETE_FIVE, handler(self, self.GetFiveCellsCall))
+    self.board:addEventListener(GAME_CELL_COMPELETE_T, handler(self, self.GetTCellsCall))
+
     cc.ui.UIPushButton.new({normal = "sanjisBtn.png"})
         :align(display.CENTER, display.left + 100, display.top - 120)
         :onButtonClicked(function()
@@ -43,6 +48,19 @@ function PlayLevelScene:onLevelCompleted()
     self:addChild(dialog)
 
     transition.moveTo(dialog, {time = 0.7, y = display.top - dialog:getContentSize().height / 2 - 40, easing = "BOUNCEOUT"})
+end
+
+function PlayLevelScene:GetFiveCellsCall()
+    print("EventTest5")
+end
+function PlayLevelScene:GetFourCellsCall_H()
+    print("EventTest4_h")
+end
+function PlayLevelScene:GetFourCellsCall_V()
+    print("EventTest4_v")
+end
+function PlayLevelScene:GetTCellsCall()
+    print("EventTestT")
 end
 
 function PlayLevelScene:onEnter()
