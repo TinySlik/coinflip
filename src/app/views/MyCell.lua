@@ -46,6 +46,7 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     valign = cc.ui.TEXT_VALIGN_CENTER,
     })
     sprite:addChild(sprite.Label,1002)
+
     return sprite
 end)
 
@@ -98,6 +99,9 @@ function Cell:Explod(CELL_STAND_SCALE,cutOrder)
             zoom2(40, 0.09, function()
                 zoom1(20, 0.10, function()
                     zoom2(20, 0.11, function()
+                        local particle = cc.ParticleSystemQuad:create("exp.plist")
+                        self:getParent():addChild(particle,1002) -- 加到显示对象上就开始播放了
+                        particle:setPosition(self:getPositionX(),self:getPositionY())
                         self:runAction(
                             transition.sequence({
                             cc.ScaleTo:create(0.30,0.1),
@@ -117,11 +121,16 @@ end
 --0.58 sumtime
 function Cell:Change()
     self.Label:setString(string.format("%d", tostring(self.Special)))
+
     if self.Special then
         if self.Special == 1 then
         elseif self.Special == 2 then
         elseif self.Special == 3 then
         elseif self.Special == 4 then
+            local particle = cc.ParticleSystemQuad:create("goldLight.plist")
+            self:addChild(particle,-1) -- 加到显示对象上就开始播放了
+            particle:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
+            particle:setScale(0.45)
         end
     end
 end
