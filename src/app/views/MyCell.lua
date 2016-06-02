@@ -1,5 +1,6 @@
 
 local Levels = import("..data.MyLevels")
+local scheduler = cc.Director:getInstance():getScheduler()
 local ourCellsName = 
 {
     {"#apple1.png","#apple2.png"},
@@ -17,6 +18,13 @@ local ourCellsName =
     {"#shanzhu.png"},
     {"#tomato.png"},
     {"#xia.png"},
+    -- {"#sea_star.png"},
+    -- {"#crab.png"},
+    -- {"#octopus.png"},
+    -- {"#seal.png"},
+    -- {"#turtle.png"},
+    -- {"#anemone.png"},
+    -- {"#jellyfish.png"},
 }
 
 local Cell = class("Cell", function(animationTime,sCale,nodeType)
@@ -24,7 +32,7 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     if nodeType then
         index = nodeType
     else
-        index =  math.floor(math.random(4)) 
+        index =  math.floor(math.random(8)) 
     end
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
@@ -46,6 +54,19 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     valign = cc.ui.TEXT_VALIGN_CENTER,
     })
     sprite:addChild(sprite.Label,1002)
+    sprite.handel = scheduler:scheduleScriptFunc (function () 
+        if sprite.arrows then
+            if sprite.arrows.curN == 1 then
+                sprite.arrows.curN = 14
+            else
+                sprite.arrows.curN = sprite.arrows.curN - 1
+            end
+            if sprite.arrows[sprite.arrows.curN] then
+                sprite.arrows[sprite.arrows.curN]:setOpacity(225)
+                sprite.arrows[sprite.arrows.curN]:runAction(cc.FadeOut:create(0.45))
+            end
+        end
+    end , 0.1 , false)
 
     return sprite
 end)
@@ -120,19 +141,58 @@ end
 
 --0.58 sumtime
 function Cell:Change()
-    self.Label:setString(string.format("%d", tostring(self.Special)))
-
+    -- self.Label:setString(string.format("%d", tostring(self.Special)))
     if self.Special then
         if self.Special == 1 then
+            if self.arrows == nil then
+                self.arrows = {}
+                for i=1,3 do
+                    self.arrows[i] = display.newSprite("line.png")
+                    self.arrows[i]:setScale(1.2 - i * 0.2)
+                    self.arrows[i]:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
+                    self:addChild(self.arrows[i] , 3)
+                    self.arrows[i]:setOpacity(0)
+                end
+                self.arrows.curN = 3
+            end
         elseif self.Special == 2 then
+            if self.arrows == nil then
+                self.arrows = {}
+                for i=1,3 do
+                    self.arrows[i] = display.newSprite("line.png")
+                    self.arrows[i]:setScale(1.0 - i * 0.2)
+                    self.arrows[i]:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
+                    self.arrows[i]:setRotation(90)
+                    self:addChild(self.arrows[i] , 3)
+                    self.arrows[i]:setOpacity(0)
+                end
+                self.arrows.curN = 3
+            end
         elseif self.Special == 3 then
+            self.nodeType = 50
+            self:setOpacity(0)
+            if self.particle  then
+                self.particle:removeSelf()
+                self.particle = nil
+            end
+            self.particle = cc.ParticleSystemQuad:create("MutColor.plist")
+            self:addChild(self.particle,-1) -- 加到显示对象上就开始播放了
+            self.particle:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
         elseif self.Special == 4 then
-            local particle = cc.ParticleSystemQuad:create("goldLight.plist")
-            self:addChild(particle,-1) -- 加到显示对象上就开始播放了
-            particle:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
-            particle:setScale(0.45)
+            if self.particle  then
+                self.particle:removeSelf()
+                self.particle = nil
+            end
+            self.particle = cc.ParticleSystemQuad:create("goldLight.plist")
+            self:addChild(self.particle,-1) -- 加到显示对象上就开始播放了
+            self.particle:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
+            self.particle:setScale(0.45)
         end
     end
+end
+
+function Cell:onExit()
+    scheduler:unscheduleScriptEntry(self.handel)
 end
 
 return Cell

@@ -11,8 +11,8 @@ function MenuScene:ctor()
     :addTo(self)
     --self:addChild(self.bg)
 
-    self.adBar = AdBar.new()
-    :addTo(self)
+    -- self.adBar = AdBar.new()
+    -- :addTo(self)
     --self:addChild(self.adBar)
 
     self.moreGamesButton = BubbleButton.new({

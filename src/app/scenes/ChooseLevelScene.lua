@@ -15,8 +15,8 @@ function ChooseLevelScene:ctor()
     local title = display.newSprite("#Title.png", display.cx, display.top - 100)
     self:addChild(title)
 
-    local adBar = AdBar.new()
-    self:addChild(adBar)
+    -- local adBar = AdBar.new()
+    -- self:addChild(adBar)
 
     -- create levels list
     local rect = cc.rect(display.left, display.bottom + 180, display.width, display.height - 280)

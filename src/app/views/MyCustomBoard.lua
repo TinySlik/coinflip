@@ -8,6 +8,7 @@ end)
 
 
 local swapDruTime = 0.6
+local startTag = false
 local cell_anim_time = 0.68
 local drop_time = 1.64
 local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
@@ -156,6 +157,7 @@ function MyBoard:ctor(levelData)
         end
     end , 1.0/60 , false)
     self:suffleSheet(self.cells)
+    startTag = true
 end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
@@ -446,58 +448,59 @@ function MyBoard:checkCell(cell,isNotClean)
     --2 纵向4个
     --3 5个
     --4 6个消除
-
-    --对应三级奖励
-    if #listV == 4 or #listH == 4  then
-        local isCan = true
-        for i,v in pairs(listV) do
-            if v.Special and v.Special  > 0  then
-                isCan = false
+    if startTag then
+        --对应三级奖励
+        if #listV == 4 or #listH == 4  then
+            local isCan = true
+            for i,v in pairs(listV) do
+                if v.Special and v.Special  > 0  then
+                    isCan = false
+                end
+            end
+            for i,v in pairs(listH) do
+                if v.Special and v.Special  > 0 then
+                    isCan = false
+                end
+            end
+            if isCan then
+                if #listV == 4 and #listH < 4  then
+                    cell.Special = 2
+                elseif #listH == 4 and #listV < 4  then
+                    cell.Special = 1
+                end
             end
         end
-        for i,v in pairs(listH) do
-            if v.Special and v.Special  > 0 then
-                isCan = false
+        --对应2级奖励
+        if #listV == 5 or #listH == 5 then
+            local isCan = true
+            for i,v in pairs(listV) do
+                if v.Special and v.Special  > 0  then
+                    v.Special = nil
+                end
+            end
+            for i,v in pairs(listH) do
+                if v.Special and v.Special  > 0  then
+                    v.Special = nil
+                end
+            end
+            if isCan then
+                cell.Special = 3
             end
         end
-        if isCan then
-            if #listV == 4 and #listH < 4  then
-                cell.Special = 2
-            elseif #listH == 4 and #listV < 4  then
-                cell.Special = 1
+        --对应1级奖励
+        if #listV + #listH >= 6 then
+            for i,v in pairs(listV) do
+                if v.Special and v.Special  > 0  then
+                    v.Special = nil
+                end
             end
-        end
-    end
-    --对应2级奖励
-    if #listV == 5 or #listH == 5 then
-        local isCan = true
-        for i,v in pairs(listV) do
-            if v.Special and v.Special  > 0  then
-                v.Special = nil
+            for i,v in pairs(listH) do
+                if v.Special and v.Special  > 0  then
+                    v.Special = nil
+                end
             end
+            cell.Special = 4
         end
-        for i,v in pairs(listH) do
-            if v.Special and v.Special  > 0  then
-                v.Special = nil
-            end
-        end
-        if isCan then
-            cell.Special = 3
-        end
-    end
-    --对应1级奖励
-    if #listV + #listH >= 6 then
-        for i,v in pairs(listV) do
-            if v.Special and v.Special  > 0  then
-                v.Special = nil
-            end
-        end
-        for i,v in pairs(listH) do
-            if v.Special and v.Special  > 0  then
-                v.Special = nil
-            end
-        end
-        cell.Special = 4
     end
     return isNeedAnim
 end
