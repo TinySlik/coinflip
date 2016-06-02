@@ -38,6 +38,9 @@ function PlayLevelScene:ctor(levelIndex)
             app:enterChooseLevelScene()
         end)
         :addTo(self)
+    self.particle = cc.ParticleSystemQuad:create("wind.plist")
+    self:addChild(self.particle) -- 加到显示对象上就开始播放了
+    self.particle:setPosition(cc.p(display.cx,display.cy))
 end
 
 function PlayLevelScene:onLevelCompleted()

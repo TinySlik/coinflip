@@ -400,7 +400,12 @@ function MyBoard:checkCell(cell,isNotClean)
         else
             -- self:dispatchEvent({name = GAME_CELL_COMPELETE_THREE })
             for i,v in pairs(listH) do
-                v.isNeedClean = true
+                if v.Special and v.Special > 0 then
+                    v.SpecialExp = true
+                    v.isNeedClean = true
+                else
+                    v.isNeedClean = true
+                end
                 v.cutOrder = i
             end
         end
@@ -438,7 +443,12 @@ function MyBoard:checkCell(cell,isNotClean)
         if isNotClean then
         else
             for i,v in pairs(listV) do
-                v.isNeedClean = true
+                if v.Special and v.Special > 0 then
+                    v.SpecialExp = true
+                    v.isNeedClean = true
+                else
+                    v.isNeedClean = true
+                end
                 v.cutOrder = i
             end
         end
@@ -511,19 +521,22 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
     local DropListFinal = {}
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
-            if v.Special and v.Special > 0 then
+            
+            if v.SpecialExp ==nil and v.Special and v.Special > 0 then
                 v.isNeedClean = false
-                if v.Special == 1 then
-                    self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_H })
-                elseif v.Special == 2 then
-                    self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_V })
-                elseif v.Special == 3 then
-                    self:dispatchEvent({name = GAME_CELL_COMPELETE_FIVE })
-                elseif v.Special == 4 then
-                    self:dispatchEvent({name = GAME_CELL_COMPELETE_T })
-                end
                 v:Change()
             else
+                if v.SpecialExp and v.Special and v.Special > 0 then
+                    if v.Special == 1 then
+                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_H })
+                    elseif v.Special == 2 then
+                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_V })
+                    elseif v.Special == 3 then
+                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FIVE })
+                    elseif v.Special == 4 then
+                        self:dispatchEvent({name = GAME_CELL_COMPELETE_T })
+                    end
+                end
                 local drop_pad = 1
                 local row = v.row
                 local col = v.col
