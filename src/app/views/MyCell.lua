@@ -32,7 +32,7 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     if nodeType then
         index = nodeType
     else
-        index =  math.floor(math.random(8)) 
+        index =  math.floor(math.random(6)) 
     end
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 

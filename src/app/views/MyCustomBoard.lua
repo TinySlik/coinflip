@@ -6,26 +6,28 @@ local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
 
-
-local swapDruTime = 0.6
-local startTag = false
-local cell_anim_time = 0.68
-local drop_time = 1.64
+local SWAP_TIME = 0.6
+local START_TAG = false
+local GAME_STEP = 0
+local WAIT_TIME = 0
+local CELL_ANIM_TIME = 0.68
+local DROP_TIME = 1.64
 local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
 local NODE_ZORDER    = 0
 local CELL_ZORDER    = 1000
 local CELL_SCALE = 1.0
 local CELL_BIG_SCALE = 1.2
-local helpDis = 8
+local HELP_DISTANCE = 8
 local curSwapBeginRow = -1
 local curSwapBeginCol = -12
 local isInAnimation = false
 local isInTouch = false
 local isEnableTouch = true
-local waitTime = 0
+local step = 0
+
 local scheduler = cc.Director:getInstance():getScheduler()
 
-function MyBoard:ctor(levelData)
+function MyBoard:ctor( levelData )
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
     cc.GameObject.extend(self):addComponent("components.behavior.EventProtocol"):exportMethods()
     self.batch = display.newNode()
@@ -105,9 +107,9 @@ function MyBoard:ctor(levelData)
                 end
             end
         end
-        waitTime = waitTime + 1.0 / 60
-        if waitTime > 5.0 then
-            waitTime = 0
+        WAIT_TIME = WAIT_TIME + 1.0 / 60
+        if WAIT_TIME > 5.0 then
+            WAIT_TIME = 0
             local p1 = cc.p(0,0)
             local p2 = cc.p(0,0)
             local cell2 = nil
@@ -116,20 +118,20 @@ function MyBoard:ctor(levelData)
             end
             if self.checkRes == 1 then
                 cell2 = self.grid[self.checkRdCell.row+1][self.checkRdCell.col]
-                p1 = cc.p(0,helpDis)
-                p2 = cc.p(0,-helpDis)
+                p1 = cc.p(0,HELP_DISTANCE)
+                p2 = cc.p(0,-HELP_DISTANCE)
             elseif self.checkRes == 2 then
                 cell2 = self.grid[self.checkRdCell.row-1][self.checkRdCell.col]
-                p2 = cc.p(0,helpDis)
-                p1 = cc.p(0,-helpDis)
+                p2 = cc.p(0,HELP_DISTANCE)
+                p1 = cc.p(0,-HELP_DISTANCE)
             elseif self.checkRes == 3 then
                 cell2 = self.grid[self.checkRdCell.row][self.checkRdCell.col+1]
-                p1 = cc.p(helpDis,0)
-                p2 = cc.p(-helpDis,0)
+                p1 = cc.p(HELP_DISTANCE,0)
+                p2 = cc.p(-HELP_DISTANCE,0)
             elseif self.checkRes == 4 then
                 cell2 = self.grid[self.checkRdCell.row][self.checkRdCell.col-1]
-                p2 = cc.p(helpDis,0)
-                p1 = cc.p(-helpDis,0)
+                p2 = cc.p(HELP_DISTANCE,0)
+                p1 = cc.p(-HELP_DISTANCE,0)
             end
 
             if isInTouch and 
@@ -157,7 +159,7 @@ function MyBoard:ctor(levelData)
         end
     end , 1.0/60 , false)
     self:suffleSheet(self.cells)
-    startTag = true
+    START_TAG = true
 end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
@@ -166,7 +168,7 @@ function MyBoard:checkLevelCompleted()
 end
 --(检查全局消除可能，同时检查全局交换可能)
 function MyBoard:checkAll()
-    waitTime = 0
+    WAIT_TIME = 0
     local padding = NODE_PADDING * GAME_CELL_EIGHT_ADD_SCALE * 1.65
     local sum = 0
     self.checkRes = 0
@@ -211,7 +213,7 @@ end
 -- 2表示下方可换
 -- 3表示左方可换
 -- 4表示右方可换
-function MyBoard:checkRound(cell)
+function MyBoard:checkRound( cell )
     if cell == nil then
         print("erro")
         return -2
@@ -266,7 +268,7 @@ function MyBoard:checkRound(cell)
     return -1
 end
 --触摸事件
-function MyBoard:onTouch( event , x, y)
+function MyBoard:onTouch( event , x , y )
     if not isEnableTouch then
         return false
     end
@@ -301,12 +303,12 @@ function MyBoard:onTouch( event , x, y)
             isEnableTouch = false
                 cell_center:runAction(
                     transition.sequence({
-                    cc.MoveTo:create(swapDruTime/2,cc.p(curSwapBeginCol * NODE_PADDING + self.offsetX,curSwapBeginRow * NODE_PADDING + self.offsetY)),
+                    cc.MoveTo:create(SWAP_TIME/2,cc.p(curSwapBeginCol * NODE_PADDING + self.offsetX,curSwapBeginRow * NODE_PADDING + self.offsetY)),
                     cc.CallFunc:create(function()
                           isEnableTouch = true
                     end)
                 }))
-            cell_center:runAction(cc.ScaleTo:create(swapDruTime/2,CELL_SCALE))
+            cell_center:runAction(cc.ScaleTo:create(SWAP_TIME/2,CELL_SCALE))
             self.grid[curSwapBeginRow][curSwapBeginCol]:setLocalZOrder(CELL_ZORDER)
         end
         if event == "ended" then
@@ -333,10 +335,14 @@ function MyBoard:onTouch( event , x, y)
                 if col -  curSwapBeginCol > 1 then col = curSwapBeginCol + 1 end
                 if curSwapBeginCol - col  > 1 then col = curSwapBeginCol - 1 end
                     self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
+                        if START_TAG then
+                            step = step + 1
+                            GAME_STEP = GAME_STEP + 1
+                        end
                         self:checkCell(self.grid[row][col])
                         self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
                         if self:checkNotClean() then
-                            waitTime = 0
+                            WAIT_TIME = 0
                             self:changeSingedCell(true)
                         else
                             self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
@@ -345,7 +351,7 @@ function MyBoard:onTouch( event , x, y)
                         end
                     end
                     )
-                cell_center:runAction(cc.ScaleTo:create(swapDruTime/2,CELL_SCALE))
+                cell_center:runAction(cc.ScaleTo:create(SWAP_TIME/2,CELL_SCALE))
             else
                 AnimBack()
                 return
@@ -357,8 +363,8 @@ function MyBoard:onTouch( event , x, y)
         end
     end
 end
---检查单个格子消除可能
-function MyBoard:checkCell(cell,isNotClean)
+--检查单个格子消除可能 -- 传入的检测格子 ，是否不需要标记删除位（仅返回一个检测值）
+function MyBoard:checkCell( cell , isNotClean )
     local isNeedAnim = 0
     local listH = {}
     local listV = {}
@@ -398,9 +404,8 @@ function MyBoard:checkCell(cell,isNotClean)
         -- print("find a 3 coup H cell")
         if isNotClean then
         else
-            -- self:dispatchEvent({name = GAME_CELL_COMPELETE_THREE })
             for i,v in pairs(listH) do
-                if v.Special and v.Special > 0 then
+                if v.Special and v.Special > 0 and v.step ~= step  then
                     v.SpecialExp = true
                     v.isNeedClean = true
                 else
@@ -443,7 +448,8 @@ function MyBoard:checkCell(cell,isNotClean)
         if isNotClean then
         else
             for i,v in pairs(listV) do
-                if v.Special and v.Special > 0 then
+                if v.Special and v.Special > 0 and v.step ~= step then
+                    
                     v.SpecialExp = true
                     v.isNeedClean = true
                 else
@@ -458,7 +464,7 @@ function MyBoard:checkCell(cell,isNotClean)
     --2 纵向4个
     --3 5个
     --4 6个消除
-    if startTag then
+    if START_TAG and isNotClean == nil then
         --对应三级奖励
         if #listV == 4 or #listH == 4  then
             local isCan = true
@@ -473,11 +479,14 @@ function MyBoard:checkCell(cell,isNotClean)
                 end
             end
             if isCan then
+                
+                cell.step = step
                 if #listV == 4 and #listH < 4  then
                     cell.Special = 2
                 elseif #listH == 4 and #listV < 4  then
                     cell.Special = 1
                 end
+                -- print(cell.row,cell.col,step,cell.Special)
             end
         end
         --对应2级奖励
@@ -494,7 +503,9 @@ function MyBoard:checkCell(cell,isNotClean)
                 end
             end
             if isCan then
+                cell.step = step
                 cell.Special = 3
+                -- print(cell.row,cell.col,step,cell.Special)
             end
         end
         --对应1级奖励
@@ -509,13 +520,15 @@ function MyBoard:checkCell(cell,isNotClean)
                     v.Special = nil
                 end
             end
+            cell.step = step
             cell.Special = 4
+            -- print(cell.row,cell.col,step,cell.Special)
         end
     end
     return isNeedAnim
 end
 --处理标记消除项目，掉落新的格子内容
-function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
+function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropList = {}
     --统计所有的最高掉落项
     local DropListFinal = {}
@@ -528,9 +541,9 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
             else
                 if v.SpecialExp and v.Special and v.Special > 0 then
                     if v.Special == 1 then
-                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_H })
-                    elseif v.Special == 2 then
                         self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_V })
+                    elseif v.Special == 2 then
+                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_H })
                     elseif v.Special == 3 then
                         self:dispatchEvent({name = GAME_CELL_COMPELETE_FIVE })
                     elseif v.Special == 4 then
@@ -555,7 +568,7 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
                 end
                 local cell
                 if onAnimationComplete then
-                    cell = Cell.new(cell_anim_time,CELL_SCALE)
+                    cell = Cell.new(CELL_ANIM_TIME,CELL_SCALE)
                 else
                     cell = Cell.new()
                 end
@@ -641,15 +654,15 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
                     if(math.abs(y_t - y) > NODE_PADDING/2 ) then
                         local rand = math.random(100)/100.0 + 0.4
                         cell_t:runAction(transition.sequence({
-                            cc.DelayTime:create(cell_anim_time + cell_t.row / self.rows * 0.24  ),
+                            cc.DelayTime:create(CELL_ANIM_TIME + cell_t.row / self.rows * 0.24  ),
                             cc.ScaleTo:create(0.3*timeSc, CELL_SCALE * 1.13, CELL_SCALE * 0.93 ),
                             cc.ScaleTo:create(0.5*timeSc, CELL_SCALE * 0.95, CELL_SCALE * 1.08 ),
                             cc.ScaleTo:create(0.6*timeSc, CELL_SCALE * 1.055, CELL_SCALE * 0.97 ),
                             cc.ScaleTo:create(0.8*timeSc, CELL_SCALE * 1.0, CELL_SCALE * 1.0 )
                         }))
                         cell_t:runAction(transition.sequence({
-                            cc.DelayTime:create((cell_anim_time + cell_t.row / self.rows * 0.24)*timeSc  ),
-                            cc.EaseElasticOut:create(cc.MoveTo:create((drop_time - 0.24 - 0.24)*timeSc , cc.p(x, y)),rand) 
+                            cc.DelayTime:create((CELL_ANIM_TIME + cell_t.row / self.rows * 0.24)*timeSc  ),
+                            cc.EaseElasticOut:create(cc.MoveTo:create((DROP_TIME - 0.24 - 0.24)*timeSc , cc.p(x, y)),rand) 
                         }))
                     end 
                 end
@@ -657,8 +670,11 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
         end
         self:runAction(transition.sequence(
         {
-            cc.DelayTime:create((cell_anim_time + drop_time)*timeSc),
+            cc.DelayTime:create((CELL_ANIM_TIME + DROP_TIME)*timeSc),
             cc.CallFunc:create(function()
+                if START_TAG then
+                    step = step + 1
+                end
                 if self:checkAll() then
                     self:changeSingedCell(true,0.75)
                 end
@@ -666,9 +682,8 @@ function MyBoard:changeSingedCell(onAnimationComplete,timeScale)
         }))
     end
 end
-
 --复位
-function MyBoard:lined(isAnimation,time)
+function MyBoard:lined( isAnimation , time )
     for row = 1, self.rows do
         local y = row * NODE_PADDING + self.offsetY
         for col = 1, self.cols do
@@ -684,14 +699,14 @@ function MyBoard:lined(isAnimation,time)
     end
 end
 --得到行列对应的格子内容
-function MyBoard:getCell(row, col)
+function MyBoard:getCell( row , col )
     if self.grid[row] then
         return self.grid[row][col]
     end
     return nil
 end
 --根据坐标点判断格子行列
-function MyBoard:getRandC(x,y)
+function MyBoard:getRandC( x , y )
     local padding = NODE_PADDING / 2
     for _, cell in ipairs(self.cells) do
         local cx, cy = cell:getPosition()
@@ -704,7 +719,7 @@ function MyBoard:getRandC(x,y)
     return -1 , -1
 end
 --表格乱序
-function MyBoard:suffleSheet(table)
+function MyBoard:suffleSheet( table )
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
     for i= 1  , #table -1 do
         temp = table[i]
@@ -714,7 +729,7 @@ function MyBoard:suffleSheet(table)
     end
 end
 --交换格子内容
-function MyBoard:swap(row1,col1,row2,col2,callBack,timeScale)
+function MyBoard:swap( row1 , col1 , row2 , col2 , callBack , timeScale )
     local swap = function(row1_,col1_,row2_,col2_)
         local temp
         if self:getCell(row1_,col1_) then
@@ -745,7 +760,7 @@ function MyBoard:swap(row1,col1,row2,col2,callBack,timeScale)
         isInAnimation = true
         local X1,Y1 = col1 * NODE_PADDING + self.offsetX , row1  * NODE_PADDING + self.offsetY
         local X2,Y2 = col2 * NODE_PADDING + self.offsetX , row2  * NODE_PADDING + self.offsetY
-        local moveTime = swapDruTime 
+        local moveTime = SWAP_TIME 
         if timeScale then
             moveTime = moveTime * timeScale
         end
@@ -772,7 +787,7 @@ function MyBoard:swap(row1,col1,row2,col2,callBack,timeScale)
     end
 end
 --全局乱序
-function MyBoard:shuffle(callBack)
+function MyBoard:shuffle( callBack )
     local temp = nil
     local big_time = 0.4
     local move_time = 0.6
