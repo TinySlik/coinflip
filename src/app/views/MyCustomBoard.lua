@@ -822,6 +822,10 @@ function MyBoard:shuffle( callBack )
     end
 end
 
+
+
+--asdfadfa
+
 function MyBoard:onEnter()
     self:setTouchEnabled(true)
 end
