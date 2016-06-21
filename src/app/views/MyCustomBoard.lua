@@ -6,10 +6,10 @@ local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
 
-local SWAP_TIME = 0.6
 local START_TAG = false
 local GAME_STEP = 0
 local WAIT_TIME = 0
+local SWAP_TIME = 0.6
 local CELL_ANIM_TIME = 0.68
 local DROP_TIME = 1.64
 local NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
@@ -18,6 +18,7 @@ local CELL_ZORDER    = 1000
 local CELL_SCALE = 1.0
 local CELL_BIG_SCALE = 1.2
 local HELP_DISTANCE = 8
+
 local curSwapBeginRow = -1
 local curSwapBeginCol = -12
 local isInAnimation = false
@@ -25,6 +26,7 @@ local isInTouch = false
 local isEnableTouch = true
 local step = 0
 
+local dispatcher = cc.Director:getInstance():getEventDispatcher()
 local scheduler = cc.Director:getInstance():getScheduler()
 
 function MyBoard:ctor( levelData )
@@ -164,7 +166,7 @@ end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
     self:setTouchEnabled(false)
-    self:dispatchEvent({name = "LEVEL_COMPLETED"})
+    self:dispatchEvent({name = GAME_SIG_LEVEL_COMPLETED })
 end
 --(检查全局消除可能，同时检查全局交换可能)
 function MyBoard:checkAll()
@@ -312,6 +314,7 @@ function MyBoard:onTouch( event , x , y )
             self.grid[curSwapBeginRow][curSwapBeginCol]:setLocalZOrder(CELL_ZORDER)
         end
         if event == "ended" then
+            dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H}))
             AnchBack()
             AnimBack()
             return
@@ -464,6 +467,7 @@ function MyBoard:checkCell( cell , isNotClean )
     --2 纵向4个
     --3 5个
     --4 6个消除
+
     if START_TAG and isNotClean == nil then
         --对应三级奖励
         if #listV == 4 or #listH == 4  then
@@ -539,22 +543,25 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                 v.isNeedClean = false
                 v:Change()
             else
-                if v.SpecialExp and v.Special and v.Special > 0 then
-                    if v.Special == 1 then
-                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_V })
-                    elseif v.Special == 2 then
-                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FOUR_H })
-                    elseif v.Special == 3 then
-                        self:dispatchEvent({name = GAME_CELL_COMPELETE_FIVE })
-                    elseif v.Special == 4 then
-                        self:dispatchEvent({name = GAME_CELL_COMPELETE_T })
-                    end
-                end
                 local drop_pad = 1
                 local row = v.row
                 local col = v.col
                 local x = col * NODE_PADDING + self.offsetX
                 local y = (self.rows + 1)* NODE_PADDING + self.offsetY
+                if v.SpecialExp and v.Special and v.Special > 0 then
+                    if v.Special == 1 then
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y}))
+                    elseif v.Special == 2 then
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y}))
+                    elseif v.Special == 3 then
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y}))
+                    elseif v.Special == 4 then
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y}))
+                    end
+                else
+                    dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y}))
+                end
+                
                 for i,v in pairs(DropList) do
                     if col == v.col then
                         drop_pad = drop_pad + 1
@@ -626,15 +633,7 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     --填补self.grid空缺
     --或执行最后的所有动画步骤
     if onAnimationComplete == nil then
-        for i=1,self.rows do
-            for j=1,self.cols do
-                local y = i * NODE_PADDING + self.offsetY
-                local x = j * NODE_PADDING + self.offsetX
-                if self.grid[i][j] then
-                    self.grid[i][j]:setPosition(x,y)
-                end
-            end
-        end
+        self:lined()
         if self:checkAll() then
              self:changeSingedCell()
         end 
@@ -822,15 +821,12 @@ function MyBoard:shuffle( callBack )
     end
 end
 
-
-
---asdfadfa
-
 function MyBoard:onEnter()
     self:setTouchEnabled(true)
 end
 
 function MyBoard:onExit()
+    START_TAG = false
     scheduler:unscheduleScriptEntry(self.bigHandel )
     GAME_CELL_EIGHT_ADD_SCALE = 1.0
     NODE_PADDING = 100 * GAME_CELL_STAND_SCALE

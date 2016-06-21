@@ -21,7 +21,7 @@ function ChooseLevelScene:ctor()
     -- create levels list
     local rect = cc.rect(display.left, display.bottom + 180, display.width, display.height - 280)
     self.levelsList = LevelsList.new(rect)
-    self.levelsList:addEventListener("onTapLevelIcon", handler(self, self.onTapLevelIcon))
+    self.levelsList:addEventListener(GAME_SIG_LEVEL_CHOOSE, handler(self, self.onTapLevelIcon))
     self:addChild(self.levelsList)
 
     cc.ui.UIPushButton.new({normal = "#BackButton.png", pressed = "#BackButtonSelected.png"})

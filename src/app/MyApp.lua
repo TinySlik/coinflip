@@ -5,6 +5,19 @@ require("framework.init")
 require("framework.shortcodes")
 require("framework.cc.init")
 
+--修改了引擎内的事件传递，解耦合
+function custom_event_handler(obj, method)
+    local dispatcher = cc.Director:getInstance():getEventDispatcher()
+    return function(...)
+        return method(obj,dispatcher._userdate, ...)
+    end
+end
+
+function TinyEventCustom(table)
+    local dispatcher = cc.Director:getInstance():getEventDispatcher()
+    dispatcher._userdate = table
+    return cc.EventCustom:new(table.name)
+end
 
 --尝试使用push
 

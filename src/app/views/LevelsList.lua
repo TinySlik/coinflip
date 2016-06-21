@@ -23,7 +23,7 @@ function LevelsList:ctor(rect)
             endLevelIndex = Levels.numLevels()
         end
         local cell = LevelsListCell.new(cc.size(display.width, rect.height), levelIndex, endLevelIndex, rows, cols)
-        cell:addEventListener("onTapLevelIcon", function(event) return self:onTapLevelIcon(event) end)
+        cell:addEventListener(GAME_SIG_LEVEL_CHOOSE, function(event) return self:onTapLevelIcon(event) end)
         self:addCell(cell)
         levelIndex = endLevelIndex + 1
     end
@@ -60,7 +60,7 @@ function LevelsList:scrollToCell(index, animated, time)
 end
 
 function LevelsList:onTapLevelIcon(event)
-    self:dispatchEvent({name = "onTapLevelIcon", levelIndex = event.levelIndex})
+    self:dispatchEvent({name = GAME_SIG_LEVEL_CHOOSE, levelIndex = event.levelIndex})
 end
 
 return LevelsList
