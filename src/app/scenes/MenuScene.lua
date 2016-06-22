@@ -9,11 +9,6 @@ end)
 function MenuScene:ctor()
     self.bg = display.newSprite("#MenuSceneBg.png", display.cx, display.cy)
     :addTo(self)
-    --self:addChild(self.bg)
-
-    -- self.adBar = AdBar.new()
-    -- :addTo(self)
-    --self:addChild(self.adBar)
 
     self.moreGamesButton = BubbleButton.new({
             image = "#MenuSceneMoreGamesButton.png",

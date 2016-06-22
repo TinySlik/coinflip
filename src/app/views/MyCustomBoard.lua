@@ -59,12 +59,12 @@ function MyBoard:ctor( levelData )
         self.offsetX = -math.floor(NODE_PADDING * self.cols / 2) - NODE_PADDING / 2
         self.offsetY = -math.floor(NODE_PADDING * self.rows / 2) - NODE_PADDING / 2
         NODE_PADDING   = 100 * GAME_CELL_STAND_SCALE
-        CELL_SCALE = GAME_CELL_STAND_SCALE  * 1.65
+        CELL_SCALE = GAME_CELL_STAND_SCALE  
     else
         self.offsetX = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
         self.offsetY = -math.floor(NODE_PADDING * 8 / 2) - NODE_PADDING / 2
         GAME_CELL_EIGHT_ADD_SCALE = 8.0 / self.cols
-        CELL_SCALE = GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE * 1.65
+        CELL_SCALE = GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE 
         NODE_PADDING = 100 * GAME_CELL_STAND_SCALE * GAME_CELL_EIGHT_ADD_SCALE
     end
     for row = 1, self.rows do
@@ -72,7 +72,8 @@ function MyBoard:ctor( levelData )
         for col = 1, self.cols do
             local x = col * NODE_PADDING + self.offsetX
             local nodeSprite = display.newSprite("#BoardNode.png", x, y)
-            nodeSprite:setScale(CELL_SCALE/1.65)
+            nodeSprite:setOpacity(100)
+            nodeSprite:setScale(CELL_SCALE)
             self.batch:addChild(nodeSprite, NODE_ZORDER)
             local node = self.grid[row][col]
             if node ~= Levels.NODE_IS_EMPTY then
@@ -104,7 +105,7 @@ function MyBoard:ctor( levelData )
                     local cell_c = self.grid[curSwapBeginRow][curSwapBeginCol] 
                     local sc = cell_c:getScaleX()
                     if sc < CELL_BIG_SCALE * CELL_SCALE then
-                        cell_c:setScale( ( CELL_BIG_SCALE * CELL_SCALE - 1.0 ) / 8 +  sc )
+                        cell_c:setScale( ( CELL_BIG_SCALE * CELL_SCALE - CELL_SCALE ) / 8 +  sc )
                     end
                 end
             end
@@ -171,7 +172,7 @@ end
 --(检查全局消除可能，同时检查全局交换可能)
 function MyBoard:checkAll()
     WAIT_TIME = 0
-    local padding = NODE_PADDING * GAME_CELL_EIGHT_ADD_SCALE * 1.65
+    local padding = NODE_PADDING * GAME_CELL_EIGHT_ADD_SCALE 
     local sum = 0
     self.checkRes = 0
     self.checkRdCell = nil
@@ -314,7 +315,6 @@ function MyBoard:onTouch( event , x , y )
             self.grid[curSwapBeginRow][curSwapBeginCol]:setLocalZOrder(CELL_ZORDER)
         end
         if event == "ended" then
-            dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H}))
             AnchBack()
             AnimBack()
             return
@@ -341,6 +341,7 @@ function MyBoard:onTouch( event , x , y )
                         if START_TAG then
                             step = step + 1
                             GAME_STEP = GAME_STEP + 1
+                            dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_STEP_COUNT , step = GAME_STEP}))
                         end
                         self:checkCell(self.grid[row][col])
                         self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
@@ -827,6 +828,9 @@ end
 
 function MyBoard:onExit()
     START_TAG = false
+    GAME_STEP = 0
+    step = 0
+    WAIT_TIME = 0
     scheduler:unscheduleScriptEntry(self.bigHandel )
     GAME_CELL_EIGHT_ADD_SCALE = 1.0
     NODE_PADDING = 100 * GAME_CELL_STAND_SCALE

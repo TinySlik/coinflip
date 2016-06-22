@@ -11,29 +11,25 @@ local PlayLevelScene = class("PlayLevelScene", function()
 end)
 
 function PlayLevelScene:ctor(levelIndex)
-    local bg = display.newSprite("bg_game.jpg")
+    local bg = display.newSprite("bg.png")
     -- make background sprite always align top
     bg:setPosition(display.cx, display.top - bg:getContentSize().height / 2)
     self:addChild(bg)
 
     local label = cc.ui.UILabel.new({
-        UILabelType = 1,
-        text  = string.format("Level: %s", tostring(levelIndex)),
-        font  = "UIFont.fnt",
-        x     = display.left + 10,
-        y     = display.bottom + 120,
+        UILabelType = 2,
+        text  = string.format("第%s关", tostring(levelIndex)),
+        font  = "1595=方正字迹-童体毛笔字体.ttf",
+        x     = display.left + 14,
+        y     = display.top - 150,
         align = cc.ui.TEXT_ALIGN_LEFT,
+        size  = 43,
+        color = cc.c4b(98,156,109,255)
     })
     self:addChild(label)
 
     self.board = Board.new(Levels.get(levelIndex))
     :addTo(self,0)
-    -- self.board:addEventListener(GAME_SIG_LEVEL_COMPLETED, handler(self, self.onLevelCompleted))
-    -- self.board:addEventListener(GAME_SIG_COMPELETE_FOUR_H, handler(self, self.GetFourCellsCall_H))
-    -- self.board:addEventListener(GAME_SIG_COMPELETE_FOUR_V, handler(self, self.GetFourCellsCall_V))
-    -- self.board:addEventListener(GAME_SIG_COMPELETE_FIVE, handler(self, self.GetFiveCellsCall))
-    -- self.board:addEventListener(GAME_SIG_COMPELETE_T, handler(self, self.GetTCellsCall))
-    -- self.board:addEventListener(GAME_SIG_COMPELETE_NORMAL, handler(self, self.GetThreeCellsCall))
     self.scoreBoard = ScoreBoard.new(Levels.get(levelIndex))
     :addTo(self,1)
 
@@ -50,12 +46,13 @@ function PlayLevelScene:ctor(levelIndex)
         dispatcher:addEventListenerWithSceneGraphPriority(v, self);
     end
     
-    cc.ui.UIPushButton.new({normal = "sanjisBtn.png"})
-        :align(display.CENTER, display.left + 100, display.top - 120)
+    cc.ui.UIPushButton.new({normal = "back.png"})
+        :align(display.CENTER, display.right - 60, display.bottom + 80)
         :onButtonClicked(function()
             app:enterChooseLevelScene()
         end)
         :addTo(self)
+        :setScale(2.0)
     self.particle = cc.ParticleSystemQuad:create("wind.plist")
     self:addChild(self.particle) -- 加到显示对象上就开始播放了
     self.particle:setPosition(cc.p(display.cx,display.cy))
@@ -72,14 +69,19 @@ function PlayLevelScene:onLevelCompleted()
 end
 
 function PlayLevelScene:GetThreeCellsCall(event)
+    print(event.name)
 end
 function PlayLevelScene:GetFiveCellsCall(event)
+    print(event.name)
 end
 function PlayLevelScene:GetFourCellsCall_H(event)
+    print(event.name)
 end
 function PlayLevelScene:GetFourCellsCall_V(event)
+    print(event.name)
 end
 function PlayLevelScene:GetTCellsCall(event)
+    print(event.name)
 end
 
 function PlayLevelScene:onEnter()

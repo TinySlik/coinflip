@@ -3,28 +3,29 @@ local Levels = import("..data.MyLevels")
 local scheduler = cc.Director:getInstance():getScheduler()
 local ourCellsName = 
 {
-    {"#apple1.png","#apple2.png"},
-    {"#cake1.png","#cake2.png"},
-    {"#manggo1.png","#manggo2.png"},
-    {"#musrom1.png","#musrom2.png"},
-    {"#oieo1.png","#oieo2.png"},
-    {"#paplegg1.png","#paplegg.png"},
-    {"#pear1.png","#pear2.png"},
-    {"#qingcai1.png","#qingcai2.png"},
-    {"#bluebeary.png"},
-    {"#egg.png"},
-    {"#ou.png"},
-    {"#robo.png"},
-    {"#shanzhu.png"},
-    {"#tomato.png"},
-    {"#xia.png"},
-    -- {"#sea_star.png"},
-    -- {"#crab.png"},
-    -- {"#octopus.png"},
-    -- {"#seal.png"},
-    -- {"#turtle.png"},
-    -- {"#anemone.png"},
-    -- {"#jellyfish.png"},
+    -- {"#apple1.png","#apple2.png"},
+    -- {"#cake1.png","#cake2.png"},
+    -- {"#manggo1.png","#manggo2.png"},
+    -- {"#musrom1.png","#musrom2.png"},
+    -- {"#oieo1.png","#oieo2.png"},
+    -- {"#paplegg1.png","#paplegg.png"},
+    -- {"#pear1.png","#pear2.png"},
+    -- {"#qingcai1.png","#qingcai2.png"},
+    -- {"#bluebeary.png"},
+    -- {"#egg.png"},
+    -- {"#ou.png"},
+    -- {"#robo.png"},
+    -- {"#shanzhu.png"},
+    -- {"#tomato.png"},
+    -- {"#xia.png"},
+    {"#fs1.png"},
+    {"#gb1.png"},
+    {"#sm1.png"},
+    {"#snk1.png"},
+    {"#hm1.png"},
+    {"#bk1.png"},
+    {"#hx1.png"},
+    {"#zy1.png"},
 }
 
 local Cell = class("Cell", function(animationTime,sCale,nodeType)
@@ -32,7 +33,7 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     if nodeType then
         index = nodeType
     else
-        index =  math.floor(math.random(4)) 
+        index =  math.floor(math.random(GAME_CELL_KIND)) 
     end
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
@@ -41,7 +42,7 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
         sprite:setOpacity(0)
         sprite:setScale(0.1)
         sprite:runAction(cc.ScaleTo:create(animationTime,sCale))
-        sprite:runAction(cc.FadeTo:create(animationTime, 225))
+        sprite:runAction(cc.FadeTo:create(animationTime, 255))
         sprite:runAction(cc.RotateBy:create(animationTime, -(360*3)))
     end
     sprite.Label = cc.ui.UILabel.new({

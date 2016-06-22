@@ -14,7 +14,7 @@ function MyScoreBoard:ctor(levelDate)
     text  = "step:0",
     font  = "UIFont.fnt",
     x     = 80  ,
-    y     = display.top-20 ,
+    y     = display.top-30 ,
     align = cc.ui.TEXT_ALIGN_CENTER,
     valign = cc.ui.TEXT_VALIGN_CENTER,
     })
@@ -27,7 +27,7 @@ function MyScoreBoard:ctor(levelDate)
     text  = "time:0",
     font  = "UIFont.fnt",
     x     = display.cx  ,
-    y     = display.top -20 ,
+    y     = display.top -30 ,
     align = cc.ui.TEXT_ALIGN_CENTER,
     valign = cc.ui.TEXT_VALIGN_CENTER,
     })
@@ -39,7 +39,7 @@ function MyScoreBoard:ctor(levelDate)
     text  = "score:0",
     font  = "UIFont.fnt",
     x     = display.right-80  ,
-    y     = display.top-20 ,
+    y     = display.top-30 ,
     align = cc.ui.TEXT_ALIGN_CENTER,
     valign = cc.ui.TEXT_VALIGN_CENTER,
     })
@@ -48,7 +48,7 @@ function MyScoreBoard:ctor(levelDate)
     self.listeners = {}
     self.listeners[1] = cc.EventListenerCustom:create(GAME_SIG_STEP_COUNT,custom_event_handler(self,self.StepCountChange) )
     self.listeners[2] = cc.EventListenerCustom:create(GAME_SIG_TIME_COUNT, custom_event_handler(self,self.TimeCountChange) )
-    self.listeners[3] = cc.EventListenerCustom:create(GAME_SIG_SCORE_COUNT,custom_event_handler(self, self.ScoreCountChange) )
+    self.listeners[3] = cc.EventListenerCustom:create(GAME_SIG_SCORE_COUNT,custom_event_handler(self,self.ScoreCountChange) )
     --添加事件监听器到分发器
     for i,v in pairs(self.listeners) do
         dispatcher:addEventListenerWithSceneGraphPriority(v, self);
@@ -56,13 +56,13 @@ function MyScoreBoard:ctor(levelDate)
 end
 
 function MyScoreBoard:StepCountChange(event)
-    dump(event)
+    self.stepLabel:setString("step:"..event.step)
 end
 function MyScoreBoard:TimeCountChange(event)
-    dump(event)
+    print(event.name)
 end
 function MyScoreBoard:ScoreCountChange(event)
-    dump(event)
+    print(event.name)
 end
 
 return MyScoreBoard
