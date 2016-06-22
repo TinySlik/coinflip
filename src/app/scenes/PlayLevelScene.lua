@@ -69,19 +69,19 @@ function PlayLevelScene:onLevelCompleted()
 end
 
 function PlayLevelScene:GetThreeCellsCall(event)
-    print(event.name)
+    print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetFiveCellsCall(event)
-    print(event.name)
+    print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetFourCellsCall_H(event)
-    print(event.name)
+    print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetFourCellsCall_V(event)
-    print(event.name)
+    print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetTCellsCall(event)
-    print(event.name)
+    print(event.name,event.nodeType)
 end
 
 function PlayLevelScene:onEnter()

@@ -551,16 +551,16 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                 local y = (self.rows + 1)* NODE_PADDING + self.offsetY
                 if v.SpecialExp and v.Special and v.Special > 0 then
                     if v.Special == 1 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y}))
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                     elseif v.Special == 2 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y}))
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                     elseif v.Special == 3 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y}))
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                     elseif v.Special == 4 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y}))
+                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                     end
                 else
-                    dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y}))
+                    dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                 end
                 
                 for i,v in pairs(DropList) do
