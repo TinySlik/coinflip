@@ -149,7 +149,7 @@ function Cell:Change()
                 self.arrows = {}
                 for i=1,3 do
                     self.arrows[i] = display.newSprite("line.png")
-                    self.arrows[i]:setScale(1.2 - i * 0.2)
+                    self.arrows[i]:setScale(1.4 - i * 0.2)
                     self.arrows[i]:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
                     self:addChild(self.arrows[i] , 3)
                     self.arrows[i]:setOpacity(0)
@@ -161,7 +161,7 @@ function Cell:Change()
                 self.arrows = {}
                 for i=1,3 do
                     self.arrows[i] = display.newSprite("line.png")
-                    self.arrows[i]:setScale(1.0 - i * 0.2)
+                    self.arrows[i]:setScale(1.4 - i * 0.2)
                     self.arrows[i]:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
                     self.arrows[i]:setRotation(90)
                     self:addChild(self.arrows[i] , 3)
