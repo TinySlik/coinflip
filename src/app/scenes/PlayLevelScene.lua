@@ -70,6 +70,7 @@ end
 
 function PlayLevelScene:GetThreeCellsCall(event)
     print(event.name,event.nodeType)
+    dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_SCORE_COUNT ,change = 10}))
 end
 function PlayLevelScene:GetFiveCellsCall(event)
     print(event.name,event.nodeType)

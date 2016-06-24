@@ -178,6 +178,7 @@ function Cell:Change()
             end
             self.particle = cc.ParticleSystemQuad:create("MutColor.plist")
             self:addChild(self.particle,-1) -- 加到显示对象上就开始播放了
+            self.particle:setScale(1.3)
             self.particle:setPosition(cc.p(self:getContentSize().width/2,self:getContentSize().height/2))
         elseif self.Special == 4 then
             if self.particle  then

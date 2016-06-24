@@ -42,7 +42,7 @@ GAME_CELL_STAND_SCALE = 0.75
 
 GAME_CELL_EIGHT_ADD_SCALE = 1.0
 
-GAME_CELL_KIND = 8
+GAME_CELL_KIND = 4
 
 --消息接受区
 
@@ -68,5 +68,9 @@ GAME_SIG_LEVEL_COMPLETED = "GAME_SIG_LEVEL_COMPLETED"
 --{name,levelIndex}
 GAME_SIG_LEVEL_CHOOSE = "GAME_SIG_LEVEL_CHOOSE"
 
+userDate = {}
+
+userDate.hightScore = 0
+userDate.curScore = 0
 
 

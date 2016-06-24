@@ -36,7 +36,7 @@ function MyScoreBoard:ctor(levelDate)
 
     self.scoreLabel = cc.ui.UILabel.new({
     UILabelType = 1,
-    text  = "score:0",
+    text  = tostring(userDate.curScore),
     font  = "UIFont.fnt",
     x     = display.right-80  ,
     y     = display.top-30 ,
@@ -59,10 +59,11 @@ function MyScoreBoard:StepCountChange(event)
     self.stepLabel:setString("step:"..event.step)
 end
 function MyScoreBoard:TimeCountChange(event)
-    print(event.name)
+    self.timeLabel:setString("time:"..event.time)
 end
 function MyScoreBoard:ScoreCountChange(event)
-    print(event.name)
+	userDate.curScore = userDate.curScore + event.change
+    self.scoreLabel:setString(userDate.curScore)
 end
 
 return MyScoreBoard

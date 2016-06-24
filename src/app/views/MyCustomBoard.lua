@@ -25,6 +25,7 @@ local isInAnimation = false
 local isInTouch = false
 local isEnableTouch = true
 local step = 0
+local time = 0
 
 local dispatcher = cc.Director:getInstance():getEventDispatcher()
 local scheduler = cc.Director:getInstance():getScheduler()
@@ -111,6 +112,10 @@ function MyBoard:ctor( levelData )
             end
         end
         WAIT_TIME = WAIT_TIME + 1.0 / 60
+        time = time + 1.0/60
+        if math.abs(time - math.floor(time)) < 0.05  then
+            dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_TIME_COUNT ,time = math.floor(time)}))
+        end
         if WAIT_TIME > 5.0 then
             WAIT_TIME = 0
             local p1 = cc.p(0,0)
@@ -160,6 +165,7 @@ function MyBoard:ctor( levelData )
                             cc.MoveBy:create(0.4,p1),
                         }))
         end
+
     end , 1.0/60 , false)
     self:suffleSheet(self.cells)
     START_TAG = true
@@ -831,6 +837,7 @@ function MyBoard:onExit()
     GAME_STEP = 0
     step = 0
     WAIT_TIME = 0
+    time = 0
     scheduler:unscheduleScriptEntry(self.bigHandel )
     GAME_CELL_EIGHT_ADD_SCALE = 1.0
     NODE_PADDING = 100 * GAME_CELL_STAND_SCALE
