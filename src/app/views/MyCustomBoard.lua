@@ -32,7 +32,6 @@ local scheduler = cc.Director:getInstance():getScheduler()
 
 function MyBoard:ctor( levelData )
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
-    cc.GameObject.extend(self):addComponent("components.behavior.EventProtocol"):exportMethods()
     self.batch = display.newNode()
     self.batch:setPosition(display.cx, display.cy)
     self:addChild(self.batch)
@@ -55,6 +54,7 @@ function MyBoard:ctor( levelData )
     self.cells = {}
     self.flipAnimationCount = 0
     --超过8格和8格以下的情况
+    --使用八格作为最适宜适配模式
     if self.cols <= 8 then
         GAME_CELL_EIGHT_ADD_SCALE = 1.0
         self.offsetX = -math.floor(NODE_PADDING * self.cols / 2) - NODE_PADDING / 2
@@ -111,11 +111,13 @@ function MyBoard:ctor( levelData )
                 end
             end
         end
-        WAIT_TIME = WAIT_TIME + 1.0 / 60
+        
         time = time + 1.0/60
         if math.abs(time - math.floor(time)) < 0.05  then
             dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_TIME_COUNT ,time = math.floor(time)}))
         end
+
+        WAIT_TIME = WAIT_TIME + 1.0 / 60
         if WAIT_TIME > 5.0 then
             WAIT_TIME = 0
             local p1 = cc.p(0,0)
@@ -147,7 +149,7 @@ function MyBoard:ctor( levelData )
                     (self.checkRdCell.row == curSwapBeginRow and self.checkRdCell.col == curSwapBeginCol)
                     or
                     (cell2.row == curSwapBeginRow and cell2.col == curSwapBeginCol)
-                    ) 
+                ) 
                 then
                 return
             end
@@ -173,12 +175,11 @@ end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
     self:setTouchEnabled(false)
-    self:dispatchEvent({name = GAME_SIG_LEVEL_COMPLETED })
+    dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_LEVEL_COMPLETED }))
 end
 --(检查全局消除可能，同时检查全局交换可能)
 function MyBoard:checkAll()
-    WAIT_TIME = 0
-    local padding = NODE_PADDING * GAME_CELL_EIGHT_ADD_SCALE 
+    WAIT_TIME = 0 
     local sum = 0
     self.checkRes = 0
     self.checkRdCell = nil
@@ -459,7 +460,6 @@ function MyBoard:checkCell( cell , isNotClean )
         else
             for i,v in pairs(listV) do
                 if v.Special and v.Special > 0 and v.step ~= step then
-                    
                     v.SpecialExp = true
                     v.isNeedClean = true
                 else
@@ -470,6 +470,7 @@ function MyBoard:checkCell( cell , isNotClean )
         end
     end
     --枚举量 代表
+    --v.Special作为标记量
     --1 横向4个
     --2 纵向4个
     --3 5个

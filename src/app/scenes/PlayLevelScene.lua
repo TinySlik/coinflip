@@ -34,13 +34,14 @@ function PlayLevelScene:ctor(levelIndex)
     :addTo(self,1)
 
     --新建事件监听器
-    self.listeners = {}
-    self.listeners[1] = cc.EventListenerCustom:create(GAME_SIG_LEVEL_COMPLETED,custom_event_handler(self, self.onLevelCompleted))
-    self.listeners[2] = cc.EventListenerCustom:create(GAME_SIG_COMPELETE_FOUR_H,custom_event_handler(self, self.GetFourCellsCall_H) )
-    self.listeners[3] = cc.EventListenerCustom:create(GAME_SIG_COMPELETE_FOUR_V,custom_event_handler(self, self.GetFourCellsCall_V) )
-    self.listeners[4] = cc.EventListenerCustom:create(GAME_SIG_COMPELETE_FIVE,custom_event_handler(self, self.GetFiveCellsCall) )
-    self.listeners[5] = cc.EventListenerCustom:create(GAME_SIG_COMPELETE_T,custom_event_handler(self, self.GetTCellsCall) )
-    self.listeners[6] = cc.EventListenerCustom:create(GAME_SIG_COMPELETE_NORMAL,custom_event_handler(self, self.GetThreeCellsCall) )
+    self.listeners = {
+        cc.EventListenerCustom:create(GAME_SIG_LEVEL_COMPLETED,custom_event_handler(self, self.onLevelCompleted)),
+        cc.EventListenerCustom:create(GAME_SIG_COMPELETE_FOUR_H,custom_event_handler(self, self.GetFourCellsCall_H) ),
+        cc.EventListenerCustom:create(GAME_SIG_COMPELETE_FOUR_V,custom_event_handler(self, self.GetFourCellsCall_V) ),
+        cc.EventListenerCustom:create(GAME_SIG_COMPELETE_FIVE,custom_event_handler(self, self.GetFiveCellsCall) ),
+        cc.EventListenerCustom:create(GAME_SIG_COMPELETE_T,custom_event_handler(self, self.GetTCellsCall) ),
+        cc.EventListenerCustom:create(GAME_SIG_COMPELETE_NORMAL,custom_event_handler(self, self.GetThreeCellsCall) ),
+    }
     --添加事件监听器到分发器
     for i,v in pairs(self.listeners) do
         dispatcher:addEventListenerWithSceneGraphPriority(v, self);

@@ -11,7 +11,7 @@ function MyScoreBoard:ctor(levelDate)
 
     self.stepLabel = cc.ui.UILabel.new({
     UILabelType = 1,
-    text  = "step:0",
+    text  = "0",
     font  = "UIFont.fnt",
     x     = 80  ,
     y     = display.top-30 ,
@@ -24,7 +24,7 @@ function MyScoreBoard:ctor(levelDate)
 
     self.timeLabel = cc.ui.UILabel.new({
     UILabelType = 1,
-    text  = "time:0",
+    text  = "0",
     font  = "UIFont.fnt",
     x     = display.cx  ,
     y     = display.top -30 ,
@@ -56,10 +56,12 @@ function MyScoreBoard:ctor(levelDate)
 end
 
 function MyScoreBoard:StepCountChange(event)
-    self.stepLabel:setString("step:"..event.step)
+    self.stepLabel:setString(event.step)
 end
 function MyScoreBoard:TimeCountChange(event)
-    self.timeLabel:setString("time:"..event.time)
+    self.timeLabel:setString(event.time)
+    -- self.timeLabel:setOpacity(255)
+    -- self.timeLabel:runAction(cc.FadeTo:create(1.1, 50))
 end
 function MyScoreBoard:ScoreCountChange(event)
 	userDate.curScore = userDate.curScore + event.change
