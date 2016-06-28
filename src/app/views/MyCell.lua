@@ -59,7 +59,9 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
 end)
 
 function Cell:Explod(CELL_STAND_SCALE,cutOrder)
-
+    if cutOrder == nil then
+        cutOrder = 1
+    end
     local function delays(onComlete)
         self:runAction(transition.sequence({
                         cc.DelayTime:create((cutOrder - 1)* 0.05 ),

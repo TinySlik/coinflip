@@ -6,11 +6,6 @@ local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
 
---想象之中
-
---新增加合并的人员A
-
-
 local START_TAG = false
 local GAME_STEP = 0
 local WAIT_TIME = 0
@@ -356,7 +351,7 @@ function MyBoard:onTouch( event , x , y )
                             GAME_STEP = GAME_STEP + 1
                             dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_STEP_COUNT , step = GAME_STEP}))
                         end
-                        if not (self:checkSpecialFive(cell_center,self.grid[row][col])) then
+                        if not (self:checkSpecialFive(cell_center,self.grid[curSwapBeginRow][curSwapBeginCol])) then
                             self:checkCell(self.grid[row][col])
                             self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
                             if self:checkNotClean() then
@@ -572,12 +567,12 @@ function MyBoard:checkCell( cell , isNotClean )
 
         for i,v in pairs(listH)  do
             if v.isNeedClean and v.SpecialExp and v.Special   then
-                self:SpecialSinged(v)
+                self:SpecialSinged(v,1)
             end
         end
         for i,v in pairs(listV) do
             if v.isNeedClean and v.SpecialExp and v.Special   then
-                self:SpecialSinged(v)
+                self:SpecialSinged(v,1)
             end
         end
 
@@ -589,6 +584,7 @@ function MyBoard:checkCell( cell , isNotClean )
                     v.cutOrder = 1
                     if v.Special and v.Special > 0 then
                         v.SpecialExp = true
+                        self:SpecialSinged(v,v.cutOrder+1)
                     end
                 end
             end
@@ -598,39 +594,35 @@ function MyBoard:checkCell( cell , isNotClean )
     return isNeedAnim
 end
 
-function MyBoard:SpecialSinged( cell )
+function MyBoard:SpecialSinged( cell ,cutOrder)
     if cell.Special == 2 then
-        print("消除一整行",cell.row)
         for i=1,self.cols do
             if i == cell.col  then
                 
             else
                 cell_AH = self:getCell(cell.row, i)
                 cell_AH.isNeedClean = true
-                cell_AH.cutOrder = 1
+                cell_AH.cutOrder = cutOrder
                 if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Spceial ~= 2 then
-                    self:SpecialSinged(cell_AH)
+                    self:SpecialSinged(cell_AH,cutOrder+1)
                 end
             end
         end
     end
     if cell.Special == 1 then
-        print("消除一整列",cell.col)
         for i=1,self.rows do
             if i == cell.row  then
                 
             else
                 cell_AV = self:getCell(i, cell.col)
                 cell_AV.isNeedClean = true
-                cell_AV.cutOrder = 1
+                cell_AV.cutOrder = cutOrder
                 if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~= 1 then
-                    self:SpecialSinged(cell_AV)
+                    self:SpecialSinged(cell_AV,cutOrder+1)
                 end
             end
         end
     end
-
-    
 end
 
 
