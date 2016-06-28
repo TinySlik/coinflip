@@ -542,8 +542,26 @@ function MyBoard:checkCell( cell , isNotClean )
             -- print(cell.row,cell.col,step,cell.Special)
         end
     end
+
+
+    for i, v in pairs(listH) do
+        if v.isNeedClean and v.SpecialExp and v.Special then
+            self:SpecialSinged(v)
+        end
+    end
+    for i, v in pairs(listV) do
+        if v.isNeedClean and v.SpecialExp and v.Special then
+            self:SpecialSinged(v)
+        end
+    end
+
     return isNeedAnim
 end
+
+function MyBorad:SpecialSinged(cell)
+    
+end
+
 --处理标记消除项目，掉落新的格子内容
 function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropList = {}
