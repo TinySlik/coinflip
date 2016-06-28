@@ -574,8 +574,8 @@ function MyBoard:SpecialSinged( cell )
                     else
                         cell_AH.Special = nil
                     
+                    
                 end
-            end
         end
     end
     if cell.Special == 1 then
@@ -590,13 +590,15 @@ function MyBoard:SpecialSinged( cell )
                 if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~=1 then
                     -- cc.DelayTime:create(0.5)
                     self:SpecialSinged(cell_AV)
-                else
+                    else
                     cell_AV.Special = nil
 
+                    
                 end
-            end
         end
     end
+
+
 
     --T，L型消除
     if cell.Special == 4 then
@@ -622,6 +624,7 @@ function MyBoard:SpecialSinged( cell )
 
     end
 end
+
 
 
 
