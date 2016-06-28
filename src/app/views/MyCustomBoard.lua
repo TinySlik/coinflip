@@ -542,8 +542,55 @@ function MyBoard:checkCell( cell , isNotClean )
             -- print(cell.row,cell.col,step,cell.Special)
         end
     end
+
+    for i,v in pairs(listH)  do
+        if v.isNeedClean and v.SpecialExp and v.Special   then
+            self:SpecialSinged(v)
+        end
+    end
+    for i,v in pairs(listV) do
+        if v.isNeedClean and v.SpecialExp and v.Special   then
+            self:SpecialSinged(v)
+        end
+    end
     return isNeedAnim
 end
+
+
+function MyBoard:SpecialSinged( cell )
+    if cell.Special == 2 then
+        print("消除一整行",cell.row)
+        for i=1,self.cols do
+            if i == cell.col  then
+                
+            else
+                cell_AH = self:getCell(cell.row, i)
+                cell_AH.isNeedClean = true
+                cell_AH.cutOrder = 1
+                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Spceial ~= 2 then
+                    self:SpecialSinged(cell_AH)
+                end
+            end
+        end
+    end
+    if cell.Special == 1 then
+        print("消除一整列",cell.col)
+        for i=1,self.rows do
+            if i == cell.row  then
+                
+            else
+                cell_AV = self:getCell(i, cell.col)
+                cell_AV.isNeedClean = true
+                cell_AV.cutOrder = 1
+                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~= 1 then
+                    self:SpecialSinged(cell_AV)
+                end
+            end
+        end
+    end
+end
+
+
 --处理标记消除项目，掉落新的格子内容
 function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropList = {}
