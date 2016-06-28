@@ -23,7 +23,7 @@ local CELL_ZORDER    = 1000
 local CELL_SCALE = 1.0
 local CELL_BIG_SCALE = 1.2
 local HELP_DISTANCE = 8
-
+local listw = {}
 local curSwapBeginRow = -1
 local curSwapBeginCol = -12
 local isInAnimation = false
@@ -349,6 +349,37 @@ function MyBoard:onTouch( event , x , y )
                 if curSwapBeginRow - row > 1 then row = curSwapBeginRow - 1 end
                 if col -  curSwapBeginCol > 1 then col = curSwapBeginCol + 1 end
                 if curSwapBeginCol - col  > 1 then col = curSwapBeginCol - 1 end
+                if cell_center.nodeType == 50 or self.grid[row][col].nodeType == 50 and (cell_center.nodeType ~= self.grid[row][col].nodeType ) then
+                    local num = 0
+                    if cell_center.nodeType == 50 then
+                        num = self.grid[row][col].nodeType
+                        cell_center.SpecialExp = true
+                    else
+                        num = cell_center.nodeType
+                        self.grid[row][col].SpecialExp = true
+                    end    
+                    
+                    for i,v in pairs(self.cells) do
+                        if v.nodeType == num then
+                            v.isNeedClean = true
+                            v.cutOrder = 2 
+                            listw[#listw + 1] = v 
+                            -- if v.Special and v.Special > 0 and v.Special ~= 3 then 
+                            --     self:SpecialSinged(v)
+                           
+                            -- end
+                        end
+                    end
+                    self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
+                        self:checkCell(self.grid[row][col])
+                        self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
+                        if self:checkNotClean() then
+                            WAIT_TIME = 0
+                            self:changeSingedCell(true,0.8)
+                            isEnableTouch = true 
+                        end
+                        end,0.5)
+                else
                     self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
                         if START_TAG then
                             step = step + 1
@@ -367,7 +398,8 @@ function MyBoard:onTouch( event , x , y )
                         end
                     end
                     )
-                cell_center:runAction(cc.ScaleTo:create(SWAP_TIME/2,CELL_SCALE))
+                    cell_center:runAction(cc.ScaleTo:create(SWAP_TIME/2,CELL_SCALE))
+                end
             else
                 AnimBack()
                 return
@@ -542,7 +574,14 @@ function MyBoard:checkCell( cell , isNotClean )
             -- print(cell.row,cell.col,step,cell.Special)
         end
     end
-
+    for i,v in pairs(listw)  do
+        if v.isNeedClean and v.SpecialExp and v.Special then
+            self:SpecialSinged(v)
+        end
+        -- if v.SpecialExp then
+        --     print (v.SpecialExp)
+        -- end
+    end
 
     for i,v in pairs(listH)  do
         if v.isNeedClean and v.SpecialExp and v.Special   then
