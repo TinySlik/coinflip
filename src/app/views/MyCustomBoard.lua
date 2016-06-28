@@ -354,22 +354,26 @@ function MyBoard:onTouch( event , x , y )
                     if cell_center.nodeType == 50 then
                         num = self.grid[row][col].nodeType
                         cell_center.SpecialExp = true
+                        cell_center.isNeedClean = true
+                        listw[#listw + 1] = cell_center
                     else
                         num = cell_center.nodeType
                         self.grid[row][col].SpecialExp = true
+                        self.grid[row][col].isNeedClean = true
+                        listw[#listw + 1] = self.grid[row][col]
                     end    
                     
                     for i,v in pairs(self.cells) do
                         if v.nodeType == num then
                             v.isNeedClean = true
-                            v.cutOrder = 2 
+                            v.cutOrder = 1
                             listw[#listw + 1] = v 
-                            -- if v.Special and v.Special > 0 and v.Special ~= 3 then 
-                            --     self:SpecialSinged(v)
-                           
-                            -- end
+                            if v.Special and v.Special > 0 then
+                                v.SpecialExp = true
+                            end
                         end
                     end
+
                     self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
                         self:checkCell(self.grid[row][col])
                         self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
@@ -597,7 +601,7 @@ function MyBoard:checkCell( cell , isNotClean )
 end
 
 
-function MyBoard:SpecialSinged( cell )
+function MyBoard:SpecialSinged( cell , isDiGui )
     if cell.Special == 2 then
         print("消除一整行",cell.row)
         for i=1,self.cols do
@@ -607,8 +611,12 @@ function MyBoard:SpecialSinged( cell )
                 cell_AH = self:getCell(cell.row, i)
                 cell_AH.isNeedClean = true
                 cell_AH.cutOrder = 1
-                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Spceial ~= 2 then
-                    self:SpecialSinged(cell_AH)
+                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0 and isDiGui == nil then
+                    if cell_AH.Special == 2 then
+                        self:SpecialSinged(cell_AH , true)
+                    else
+                        self:SpecialSinged(cell_AH)
+                    end
                 end
             end
         end
@@ -622,8 +630,12 @@ function MyBoard:SpecialSinged( cell )
                 cell_AV = self:getCell(i, cell.col)
                 cell_AV.isNeedClean = true
                 cell_AV.cutOrder = 1
-                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~= 1 then
-                    self:SpecialSinged(cell_AV)
+                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and isDiGui == nil then
+                    if cell_AV.Special == 1 then
+                        self:SpecialSinged(cell_AV , true)
+                    else
+                        self:SpecialSinged(cell_AV)
+                    end
                 end
             end
         end
@@ -646,11 +658,18 @@ function MyBoard:SpecialSinged( cell )
         for i,v in pairs(waitForRemove) do
             v.isNeedClean = true
             v.cutOrder = 3
-            -- if v.Special and v.Special > 0 then
-            --     self:SpecialSinged(v)
-            -- end
+            if v.Special and v.Special > 0 and isDiGui == nil then
+                if v.Special == 4 then
+                    self:SpecialSinged(v, true)
+                else
+                    self:SpecialSinged(v)
+                end
+            end
         end
-
+    end
+    cell.isNeedClean = true
+    if cell.Special and cell.Special > 0 then
+        cell.SpecialExp = true
     end
 end
 
