@@ -5,6 +5,7 @@ local Cell   = import("..views.MyCell")
 local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
+--想象之中
 
 local START_TAG = false
 local GAME_STEP = 0
