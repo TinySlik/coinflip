@@ -5,7 +5,11 @@ local Cell   = import("..views.MyCell")
 local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
+
 --想象之中
+
+--新增加合并的人员A
+
 
 local START_TAG = false
 local GAME_STEP = 0
@@ -112,7 +116,7 @@ function MyBoard:ctor( levelData )
                 end
             end
         end
-        
+
         time = time + 1.0/60
         if math.abs(time - math.floor(time)) < 0.05  then
             dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_TIME_COUNT ,time = math.floor(time)}))
