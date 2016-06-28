@@ -511,12 +511,12 @@ function MyBoard:checkCell( cell , isNotClean )
             local isCan = true
             for i,v in pairs(listV) do
                 if v.Special and v.Special  > 0  then
-                    v.Special = nil
+                    self:SpecialSinged(v)
                 end
             end
             for i,v in pairs(listH) do
                 if v.Special and v.Special  > 0  then
-                    v.Special = nil
+                    self:SpecialSinged(v)
                 end
             end
             if isCan then
@@ -529,12 +529,12 @@ function MyBoard:checkCell( cell , isNotClean )
         if #listV + #listH >= 6 then
             for i,v in pairs(listV) do
                 if v.Special and v.Special  > 0  then
-                    v.Special = nil
+                     self:SpecialSinged(v)
                 end
             end
             for i,v in pairs(listH) do
                 if v.Special and v.Special  > 0  then
-                    v.Special = nil
+                    self:SpecialSinged(v)
                 end
             end
             cell.step = step
@@ -562,14 +562,18 @@ function MyBoard:SpecialSinged( cell )
     if cell.Special == 2 then
         print("消除一整行",cell.row)
         for i=1,self.cols do
-            if i == cell.col  then
+            -- if i == cell.col  then
                 
-            else
+            -- else
                 cell_AH = self:getCell(cell.row, i)
                 cell_AH.isNeedClean = true
                 cell_AH.cutOrder = 1
-                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Spceial ~= 2 then
+                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Special ~=2 then
+                    -- cc.DelayTime:create(0.5)
                     self:SpecialSinged(cell_AH)
+                    else
+                        cell_AH.Special = nil
+                    
                 end
             end
         end
@@ -577,14 +581,18 @@ function MyBoard:SpecialSinged( cell )
     if cell.Special == 1 then
         print("消除一整列",cell.col)
         for i=1,self.rows do
-            if i == cell.row  then
+            -- if i == cell.row  then
                 
-            else
+            -- else
                 cell_AV = self:getCell(i, cell.col)
                 cell_AV.isNeedClean = true
                 cell_AV.cutOrder = 1
-                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~= 1 then
+                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~=1 then
+                    -- cc.DelayTime:create(0.5)
                     self:SpecialSinged(cell_AV)
+                else
+                    cell_AV.Special = nil
+
                 end
             end
         end
