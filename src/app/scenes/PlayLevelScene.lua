@@ -70,20 +70,20 @@ function PlayLevelScene:onLevelCompleted()
 end
 
 function PlayLevelScene:GetThreeCellsCall(event)
-    print(event.name,event.nodeType)
+    -- print(event.name,event.nodeType)
     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_SCORE_COUNT ,change = 10}))
 end
 function PlayLevelScene:GetFiveCellsCall(event)
-    print(event.name,event.nodeType)
+    -- print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetFourCellsCall_H(event)
-    print(event.name,event.nodeType)
+    -- print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetFourCellsCall_V(event)
-    print(event.name,event.nodeType)
+    -- print(event.name,event.nodeType)
 end
 function PlayLevelScene:GetTCellsCall(event)
-    print(event.name,event.nodeType)
+    -- print(event.name,event.nodeType)
 end
 
 function PlayLevelScene:onEnter()

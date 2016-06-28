@@ -23,6 +23,7 @@ local CELL_ZORDER    = 1000
 local CELL_SCALE = 1.0
 local CELL_BIG_SCALE = 1.2
 local HELP_DISTANCE = 8
+local CELL_NEED_REMOVE_TYPE = -1
 
 local curSwapBeginRow = -1
 local curSwapBeginCol = -12
@@ -355,15 +356,24 @@ function MyBoard:onTouch( event , x , y )
                             GAME_STEP = GAME_STEP + 1
                             dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_STEP_COUNT , step = GAME_STEP}))
                         end
-                        self:checkCell(self.grid[row][col])
-                        self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
-                        if self:checkNotClean() then
-                            WAIT_TIME = 0
-                            self:changeSingedCell(true)
+                        if not (self:checkSpecialFive(cell_center,self.grid[row][col])) then
+                            self:checkCell(self.grid[row][col])
+                            self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
+                            if self:checkNotClean() then
+                                WAIT_TIME = 0
+                                self:changeSingedCell(true)
+                            else
+                                self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
+                                    isEnableTouch = true
+                                end,0.5)
+                            end
                         else
-                            self:swap(row,col,curSwapBeginRow,curSwapBeginCol,function()
-                                isEnableTouch = true
-                            end,0.5)
+                            self:checkCell(self.grid[row][col])
+                            self:checkCell(self.grid[curSwapBeginRow][curSwapBeginCol])
+                            if self:checkNotClean() then
+                                WAIT_TIME = 0
+                                self:changeSingedCell(true)
+                            end 
                         end
                     end
                     )
@@ -379,6 +389,24 @@ function MyBoard:onTouch( event , x , y )
         end
     end
 end
+
+function MyBoard:checkSpecialFive(cell1,cell2)
+    if cell1.nodeType == 50 or cell2.nodeType == 50 and (cell1.nodeType ~= cell2.nodeType ) then
+        if cell1.nodeType == 50 then
+            CELL_NEED_REMOVE_TYPE = cell2.nodeType
+            cell1.SpecialExp = true
+            cell1.isNeedClean = true
+        else
+            CELL_NEED_REMOVE_TYPE = cell1.nodeType
+            cell2.SpecialExp = true
+            cell2.isNeedClean = true
+        end
+        return true
+    else
+        return false
+    end
+end
+
 --检查单个格子消除可能 -- 传入的检测格子 ，是否不需要标记删除位（仅返回一个检测值）
 function MyBoard:checkCell( cell , isNotClean )
     local isNeedAnim = 0
@@ -541,9 +569,71 @@ function MyBoard:checkCell( cell , isNotClean )
             cell.Special = 4
             -- print(cell.row,cell.col,step,cell.Special)
         end
+
+        for i,v in pairs(listH)  do
+            if v.isNeedClean and v.SpecialExp and v.Special   then
+                self:SpecialSinged(v)
+            end
+        end
+        for i,v in pairs(listV) do
+            if v.isNeedClean and v.SpecialExp and v.Special   then
+                self:SpecialSinged(v)
+            end
+        end
+
+        if CELL_NEED_REMOVE_TYPE ~= -1 then
+            print(CELL_NEED_REMOVE_TYPE)
+            for i,v in pairs(self.cells)  do
+                if v and v.nodeType == CELL_NEED_REMOVE_TYPE then
+                    v.isNeedClean = true
+                    v.cutOrder = 1
+                    if v.Special and v.Special > 0 then
+                        v.SpecialExp = true
+                    end
+                end
+            end
+            CELL_NEED_REMOVE_TYPE = -1
+        end
     end
     return isNeedAnim
 end
+
+function MyBoard:SpecialSinged( cell )
+    if cell.Special == 2 then
+        print("消除一整行",cell.row)
+        for i=1,self.cols do
+            if i == cell.col  then
+                
+            else
+                cell_AH = self:getCell(cell.row, i)
+                cell_AH.isNeedClean = true
+                cell_AH.cutOrder = 1
+                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Spceial ~= 2 then
+                    self:SpecialSinged(cell_AH)
+                end
+            end
+        end
+    end
+    if cell.Special == 1 then
+        print("消除一整列",cell.col)
+        for i=1,self.rows do
+            if i == cell.row  then
+                
+            else
+                cell_AV = self:getCell(i, cell.col)
+                cell_AV.isNeedClean = true
+                cell_AV.cutOrder = 1
+                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~= 1 then
+                    self:SpecialSinged(cell_AV)
+                end
+            end
+        end
+    end
+
+    
+end
+
+
 --处理标记消除项目，掉落新的格子内容
 function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropList = {}
@@ -753,8 +843,10 @@ function MyBoard:swap( row1 , col1 , row2 , col2 , callBack , timeScale )
             self.grid[row2_][col2_].col = col1
         end
         temp = self.grid[row1_][col1_] 
-        self.grid[row1_][col1_] = self.grid[row2_][col2_]
-        self.grid[row2_][col2_] = temp
+        if self.grid[row2_] and  self.grid[row2_][col2_] then
+            self.grid[row1_][col1_] = self.grid[row2_][col2_]
+            self.grid[row2_][col2_] = temp
+        end
     end
 
     if callBack == nil then
@@ -847,7 +939,6 @@ function MyBoard:onExit()
     scheduler:unscheduleScriptEntry(self.bigHandel )
     GAME_CELL_EIGHT_ADD_SCALE = 1.0
     NODE_PADDING = 100 * GAME_CELL_STAND_SCALE
-    self:removeAllEventListeners()
 end
 
 return MyBoard
