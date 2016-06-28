@@ -539,7 +539,6 @@ function MyBoard:checkCell( cell , isNotClean )
                 elseif #listH == 4 and #listV < 4  then
                     cell.Special = 1
                 end
-                -- print(cell.row,cell.col,step,cell.Special)
             end
         end
         --对应2级奖励
@@ -558,7 +557,6 @@ function MyBoard:checkCell( cell , isNotClean )
             if isCan then
                 cell.step = step
                 cell.Special = 3
-                -- print(cell.row,cell.col,step,cell.Special)
             end
         end
         --对应1级奖励
@@ -577,26 +575,27 @@ function MyBoard:checkCell( cell , isNotClean )
             cell.Special = 4
             -- print(cell.row,cell.col,step,cell.Special)
         end
-    end
-    for i,v in pairs(listw)  do
-        if v.isNeedClean and v.SpecialExp and v.Special then
-            self:SpecialSinged(v)
+        for i,v in pairs(listw)  do
+            if v.isNeedClean and v.SpecialExp and v.Special then
+                self:SpecialSinged(v)
+            end
+            -- if v.SpecialExp then
+            --     print (v.SpecialExp)
+            -- end
         end
-        -- if v.SpecialExp then
-        --     print (v.SpecialExp)
-        -- end
-    end
 
-    for i,v in pairs(listH)  do
-        if v.isNeedClean and v.SpecialExp and v.Special   then
-            self:SpecialSinged(v)
+        for i,v in pairs(listH)  do
+            if v.isNeedClean and v.SpecialExp and v.Special   then
+                self:SpecialSinged(v)
+            end
+        end
+        for i,v in pairs(listV) do
+            if v.isNeedClean and v.SpecialExp and v.Special   then
+                self:SpecialSinged(v)
+            end
         end
     end
-    for i,v in pairs(listV) do
-        if v.isNeedClean and v.SpecialExp and v.Special   then
-            self:SpecialSinged(v)
-        end
-    end
+    
     return isNeedAnim
 end
 
@@ -605,9 +604,9 @@ function MyBoard:SpecialSinged( cell , isDiGui )
     if cell.Special == 2 then
         print("消除一整行",cell.row)
         for i=1,self.cols do
-            if i == cell.col  then
+            -- if i == cell.col  then
                 
-            else
+            -- else
                 cell_AH = self:getCell(cell.row, i)
                 cell_AH.isNeedClean = true
                 cell_AH.cutOrder = 1
@@ -618,15 +617,14 @@ function MyBoard:SpecialSinged( cell , isDiGui )
                         self:SpecialSinged(cell_AH)
                     end
                 end
-            end
         end
     end
     if cell.Special == 1 then
         print("消除一整列",cell.col)
         for i=1,self.rows do
-            if i == cell.row  then
+            -- if i == cell.row  then
                 
-            else
+            -- else
                 cell_AV = self:getCell(i, cell.col)
                 cell_AV.isNeedClean = true
                 cell_AV.cutOrder = 1
@@ -637,9 +635,10 @@ function MyBoard:SpecialSinged( cell , isDiGui )
                         self:SpecialSinged(cell_AV)
                     end
                 end
-            end
         end
     end
+
+
 
     --T，L型消除
     if cell.Special == 4 then
@@ -672,6 +671,7 @@ function MyBoard:SpecialSinged( cell , isDiGui )
         cell.SpecialExp = true
     end
 end
+
 
 
 
