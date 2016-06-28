@@ -543,6 +543,7 @@ function MyBoard:checkCell( cell , isNotClean )
         end
     end
 
+
     for i,v in pairs(listH)  do
         if v.isNeedClean and v.SpecialExp and v.Special   then
             self:SpecialSinged(v)
@@ -589,6 +590,7 @@ function MyBoard:SpecialSinged( cell )
         end
     end
 end
+
 
 
 --处理标记消除项目，掉落新的格子内容
