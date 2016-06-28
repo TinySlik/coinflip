@@ -628,6 +628,30 @@ function MyBoard:SpecialSinged( cell )
             end
         end
     end
+
+    --T，L型消除
+    if cell.Special == 4 then
+        --定义一个容器
+        local waitForRemove = {
+            self.grid[cell.row][cell.col]
+        }
+        --遍历全局，把符合规则的格子放到容器中
+        for i,v in pairs(self.cells)  do
+            if ( math.abs(v.row - cell.row) + math.abs(v.col - cell.col) ) < 3 then
+                waitForRemove[#waitForRemove + 1] = self.grid[v.row][v.col]
+            end
+        end
+
+        --遍历容器,标记消除项目
+        for i,v in pairs(waitForRemove) do
+            v.isNeedClean = true
+            v.cutOrder = 3
+            -- if v.Special and v.Special > 0 then
+            --     self:SpecialSinged(v)
+            -- end
+        end
+
+    end
 end
 
 
