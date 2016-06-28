@@ -64,7 +64,7 @@ function Cell:Explod(CELL_STAND_SCALE,cutOrder)
     end
     local function delays(onComlete)
         self:runAction(transition.sequence({
-                        cc.DelayTime:create((cutOrder - 1)* 0.05 ),
+                        cc.DelayTime:create((cutOrder - 1)* 0.1 ),
                         cc.CallFunc:create(function()
                               onComlete()
                         end)

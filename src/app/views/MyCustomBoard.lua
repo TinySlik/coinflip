@@ -562,17 +562,16 @@ function MyBoard:checkCell( cell , isNotClean )
             end
             cell.step = step
             cell.Special = 4
-            -- print(cell.row,cell.col,step,cell.Special)
         end
 
         for i,v in pairs(listH)  do
             if v.isNeedClean and v.SpecialExp and v.Special   then
-                self:SpecialSinged(v,1)
+                self:SpecialSinged(v,v.cutOrder)
             end
         end
         for i,v in pairs(listV) do
             if v.isNeedClean and v.SpecialExp and v.Special   then
-                self:SpecialSinged(v,1)
+                self:SpecialSinged(v,v.cutOrder)
             end
         end
 
@@ -581,10 +580,9 @@ function MyBoard:checkCell( cell , isNotClean )
             for i,v in pairs(self.cells)  do
                 if v and v.nodeType == CELL_NEED_REMOVE_TYPE then
                     v.isNeedClean = true
-                    v.cutOrder = 1
                     if v.Special and v.Special > 0 then
                         v.SpecialExp = true
-                        self:SpecialSinged(v,v.cutOrder+1)
+                        self:SpecialSinged(v,v.cutOrder)
                     end
                 end
             end
@@ -603,13 +601,15 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
                 cell_AH = self:getCell(cell.row, i)
                 cell_AH.isNeedClean = true
                 cell_AH.cutOrder = cutOrder
-                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0  and cell_AH.Spceial ~= 2 then
-                    self:SpecialSinged(cell_AH,cutOrder+1)
+                print(cell_AH.cutOrder)
+                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0   then
+                    if not cell_AV.SpecialExp  then
+                        self:SpecialSinged(cell_AV,cutOrder+1)
+                    end
                 end
             end
         end
-    end
-    if cell.Special == 1 then
+    elseif cell.Special == 1 then
         for i=1,self.rows do
             if i == cell.row  then
                 
@@ -617,11 +617,42 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
                 cell_AV = self:getCell(i, cell.col)
                 cell_AV.isNeedClean = true
                 cell_AV.cutOrder = cutOrder
-                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0  and cell_AV.Special ~= 1 then
-                    self:SpecialSinged(cell_AV,cutOrder+1)
+                print(cell_AV.cutOrder)
+                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0 then
+                    if not cell_AV.SpecialExp  then
+                        self:SpecialSinged(cell_AV,cutOrder+1)
+                    end
                 end
             end
         end
+    --T，L型消除
+    elseif cell.Special == 4 then
+        --定义一个容器
+        local waitForRemove = {
+        }
+        --遍历全局，把符合规则的格子放到容器中
+        for i,v in pairs(self.cells)  do
+            if ( math.abs(v.row - cell.row) + math.abs(v.col - cell.col) ) < 3 then
+                waitForRemove[#waitForRemove + 1] = self.grid[v.row][v.col]
+            end
+        end
+
+        --遍历容器,标记消除项目
+        for i,v in pairs(waitForRemove) do
+            v.isNeedClean = true
+            v.cutOrder = cutOrder
+            print(v.cutOrder)
+            if v.Special and v.Special > 0 and v ~= cell  then\
+                if not v.SpecialExp  then
+                    self:SpecialSinged(v,cutOrder+1)
+                end
+            end
+        end
+    end
+    cell.isNeedClean = true
+    if cell.Special and cell.Special > 0 then
+        cell.SpecialExp = true
+        cell.cutOrder = cutOrder
     end
 end
 
