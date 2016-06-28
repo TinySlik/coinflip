@@ -799,9 +799,11 @@ function MyBoard:swap( row1 , col1 , row2 , col2 , callBack , timeScale )
             self.grid[row2_][col2_].row = row1
             self.grid[row2_][col2_].col = col1
         end
-        temp = self.grid[row1_][col1_] 
-        self.grid[row1_][col1_] = self.grid[row2_][col2_]
-        self.grid[row2_][col2_] = temp
+       temp = self:getCell(row1_,col1_)
+        if self:getCell(row2_,col2_) then
+            self.grid[row1_][col1_] = self:getCell(row2_,col2_)
+            self.grid[row2_][col2_] = temp
+        end
     end
 
     if callBack == nil then
