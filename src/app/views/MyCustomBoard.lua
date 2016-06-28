@@ -417,6 +417,7 @@ function MyBoard:onTouch( event , x , y )
 end
 --检查单个格子消除可能 -- 传入的检测格子 ，是否不需要标记删除位（仅返回一个检测值）
 function MyBoard:checkCell( cell , isNotClean )
+    print("checkCell")
     local isNeedAnim = 0
     local listH = {}
     local listV = {}
@@ -518,7 +519,7 @@ function MyBoard:checkCell( cell , isNotClean )
     --4 6个消除
 
     if START_TAG and isNotClean == nil then
-        --对应三级奖励
+        --对应1奖励
         if #listV == 4 or #listH == 4  then
             local isCan = true
             for i,v in pairs(listV) do
@@ -541,8 +542,26 @@ function MyBoard:checkCell( cell , isNotClean )
                 end
             end
         end
-        --对应2级奖励
-        if #listV == 5 or #listH == 5 then
+        
+        --对应2奖励
+        if #listV + #listH >= 6 then
+            for i,v in pairs(listV) do
+                if v.Special and v.Special  > 0  then
+                    v.Special = nil
+                end
+            end
+            for i,v in pairs(listH) do
+                if v.Special and v.Special  > 0  then
+                    v.Special = nil
+                end
+            end
+            cell.step = step
+            cell.Special = 4
+            -- print(cell.row,cell.col,step,cell.Special)
+        end
+
+        --对应3奖励
+        if #listV >= 5 or #listH >= 5 then
             local isCan = true
             for i,v in pairs(listV) do
                 if v.Special and v.Special  > 0  then
@@ -559,22 +578,7 @@ function MyBoard:checkCell( cell , isNotClean )
                 cell.Special = 3
             end
         end
-        --对应1级奖励
-        if #listV + #listH >= 6 then
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            cell.step = step
-            cell.Special = 4
-            -- print(cell.row,cell.col,step,cell.Special)
-        end
+
         for i,v in pairs(listw)  do
             if v.isNeedClean and v.SpecialExp and v.Special then
                 self:SpecialSinged(v)
@@ -637,9 +641,6 @@ function MyBoard:SpecialSinged( cell , isDiGui )
                 end
         end
     end
-
-
-
     --T，L型消除
     if cell.Special == 4 then
         --定义一个容器
