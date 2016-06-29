@@ -504,12 +504,12 @@ function MyBoard:checkCell( cell , isNotClean )
     --3 5个
     --4 6个消除
 
-    if START_TAG and isNotClean == nil then
+    if START_TAG and isNotClean == nil and not cell.SpecialExp then
         --对应三级奖励
         if #listV == 4 or #listH == 4  then
             local isCan = true
             for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
+                if v.Special and v.Special  > 0 then
                     isCan = false
                 end
             end
@@ -521,9 +521,9 @@ function MyBoard:checkCell( cell , isNotClean )
             if isCan then
                 
                 cell.step = step
-                if #listV == 4 and #listH < 4  then
+                if #listV == 4 and #listH < 4 then
                     cell.Special = 2
-                elseif #listH == 4 and #listV < 4  then
+                elseif #listH == 4 and #listV < 4 then
                     cell.Special = 1
                 end
                 -- print(cell.row,cell.col,step,cell.Special)
@@ -565,12 +565,12 @@ function MyBoard:checkCell( cell , isNotClean )
         end
 
         for i,v in pairs(listH)  do
-            if v.isNeedClean and v.SpecialExp and v.Special   then
+            if v.isNeedClean and v.SpecialExp and v.Special  then
                 self:SpecialSinged(v,v.cutOrder)
             end
         end
         for i,v in pairs(listV) do
-            if v.isNeedClean and v.SpecialExp and v.Special   then
+            if v.isNeedClean and v.SpecialExp and v.Special  then
                 self:SpecialSinged(v,v.cutOrder)
             end
         end
@@ -602,9 +602,9 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
                 cell_AH.isNeedClean = true
                 cell_AH.cutOrder = cutOrder
                 print(cell_AH.cutOrder)
-                if cell_AH.Special and cell_AH.Special  and cell_AH.Special > 0   then
-                    if not cell_AV.SpecialExp  then
-                        self:SpecialSinged(cell_AV,cutOrder+1)
+                if cell_AH.Special and cell_AH.Special and cell_AH.Special > 0   then
+                    if not cell_AH.SpecialExp then
+                        self:SpecialSinged(cell_AH,cutOrder+1)
                     end
                 end
             end
