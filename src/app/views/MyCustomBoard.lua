@@ -504,65 +504,68 @@ function MyBoard:checkCell( cell , isNotClean )
     --3 5个
     --4 6个消除
 
-    if START_TAG and isNotClean == nil and not cell.SpecialExp then
-        --对应三级奖励
-        if #listV == 4 or #listH == 4  then
-            local isCan = true
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0 then
-                    isCan = false
+    if START_TAG and isNotClean == nil  then
+        if not cell.SpecialExp then
+            --对应三级奖励
+            if #listV == 4 or #listH == 4  then
+                local isCan = true
+                for i,v in pairs(listV) do
+                    if v.Special and v.Special  > 0 then
+                        isCan = false
+                    end
+                end
+                for i,v in pairs(listH) do
+                    if v.Special and v.Special  > 0 then
+                        isCan = false
+                    end
+                end
+                if isCan then
+                    
+                    cell.step = step
+                    if #listV == 4 and #listH < 4 then
+                        cell.Special = 2
+                    elseif #listH == 4 and #listV < 4 then
+                        cell.Special = 1
+                    end
+                    -- print(cell.row,cell.col,step,cell.Special)
                 end
             end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0 then
-                    isCan = false
+            --对应2级奖励
+            if #listV == 5 or #listH == 5 then
+                local isCan = true
+                for i,v in pairs(listV) do
+                    if v.Special and v.Special  > 0  then
+                        v.Special = nil
+                    end
+                end
+                for i,v in pairs(listH) do
+                    if v.Special and v.Special  > 0  then
+                        v.Special = nil
+                    end
+                end
+                if isCan then
+                    cell.step = step
+                    cell.Special = 3
+                    -- print(cell.row,cell.col,step,cell.Special)
                 end
             end
-            if isCan then
-                
+            --对应1级奖励
+            if #listV + #listH >= 6 then
+                for i,v in pairs(listV) do
+                    if v.Special and v.Special  > 0  then
+                        v.Special = nil
+                    end
+                end
+                for i,v in pairs(listH) do
+                    if v.Special and v.Special  > 0  then
+                        v.Special = nil
+                    end
+                end
                 cell.step = step
-                if #listV == 4 and #listH < 4 then
-                    cell.Special = 2
-                elseif #listH == 4 and #listV < 4 then
-                    cell.Special = 1
-                end
-                -- print(cell.row,cell.col,step,cell.Special)
+                cell.Special = 4
             end
         end
-        --对应2级奖励
-        if #listV == 5 or #listH == 5 then
-            local isCan = true
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            if isCan then
-                cell.step = step
-                cell.Special = 3
-                -- print(cell.row,cell.col,step,cell.Special)
-            end
-        end
-        --对应1级奖励
-        if #listV + #listH >= 6 then
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            cell.step = step
-            cell.Special = 4
-        end
+        
 
         for i,v in pairs(listH)  do
             if v.isNeedClean and v.SpecialExp and v.Special  then
