@@ -642,7 +642,7 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
             v.isNeedClean = true
             v.cutOrder = cutOrder
             print(v.cutOrder)
-            if v.Special and v.Special > 0 and v ~= cell  then\
+            if v.Special and v.Special > 0 and v ~= cell  then
                 if not v.SpecialExp  then
                     self:SpecialSinged(v,cutOrder+1)
                 end
