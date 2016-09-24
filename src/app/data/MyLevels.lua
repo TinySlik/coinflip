@@ -3,6 +3,27 @@ local Levels = {}
 Levels.NODE_IS_WHITE  = 1
 Levels.NODE_IS_BLACK  = 0
 Levels.NODE_IS_EMPTY  = "X"
+Levels.NODE_IS_SOLID    = --[[00000001]] 1
+Levels.NODE_IS_NORMAL   = --[[00000000]] 0
+Levels.NODE_IS_ICE1     = --[[00000010]] 2
+Levels.NODE_IS_ICE2     = --[[00000100]] 4
+Levels.NODE_IS_ICE3     = --[[00000110]] 6
+Levels.NODE_IS_ICE4     = --[[00001000]] 8
+Levels.NODE_IS_ICE5     = --[[00001010]] 10
+Levels.NODE_IS_ICE6     = --[[00001100]] 14
+Levels.NODE_IS_ICE7     = --[[00001110]] 16
+Levels.NODE_IS_COLF     = --[[00001001]] 9
+
+Levels.NODE_IS_UP_B     = --[[10000000]] 128
+Levels.NODE_IS_DOWN_B   = --[[01000000]] 64
+Levels.NODE_IS_LEFT_B   = --[[00100000]] 32
+Levels.NODE_IS_RIGHT_B  = --[[00010000]] 16
+Levels.NODE_IS_BOUND    = --[[11110000]] 240
+
+Levels.NODE_IS_LINK_U   = --[[01110000]] 112
+Levels.NODE_IS_LINK_D   = --[[10110000]] 156
+
+Levels.NODE_IS_EXTEND   = --[[11111111]] 255
 
 local levelsData = {}
 
