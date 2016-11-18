@@ -178,12 +178,16 @@ function MyBoard:checkLevelCompleted()
     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_LEVEL_COMPLETED }))
 end
 --(检查全局消除可能，同时检查全局交换可能)
-function MyBoard:checkAll()
+function MyBoard:checkAll( tableToCheck )
+    local tableCK = self.cells
+    if tableToCheck then
+        tableCK = tableToCheck
+    end
     WAIT_TIME = 0 
     local sum = 0
     self.checkRes = 0
     self.checkRdCell = nil
-    for _, cell in pairs(self.cells) do
+    for _, cell in pairs(tableCK) do
         sum = sum + self:checkCell(cell)
         if sum == 0 and self.checkRes == 0 then
             local res = self:checkRound(cell)
@@ -469,74 +473,74 @@ function MyBoard:checkCell( cell , isNotClean )
             end
         end
     end
-    --枚举量 代表
-    --v.Special作为标记量
-    --1 横向4个
-    --2 纵向4个
-    --3 5个
-    --4 6个消除
+    -- --枚举量 代表
+    -- --v.Special作为标记量
+    -- --1 横向4个
+    -- --2 纵向4个
+    -- --3 5个
+    -- --4 6个消除
 
-    if START_TAG and isNotClean == nil then
-        --对应三级奖励
-        if #listV == 4 or #listH == 4  then
-            local isCan = true
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
-                    isCan = false
-                end
-            end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0 then
-                    isCan = false
-                end
-            end
-            if isCan then
+    -- if START_TAG and isNotClean == nil then
+    --     --对应三级奖励
+    --     if #listV == 4 or #listH == 4  then
+    --         local isCan = true
+    --         for i,v in pairs(listV) do
+    --             if v.Special and v.Special  > 0  then
+    --                 isCan = false
+    --             end
+    --         end
+    --         for i,v in pairs(listH) do
+    --             if v.Special and v.Special  > 0 then
+    --                 isCan = false
+    --             end
+    --         end
+    --         if isCan then
                 
-                cell.step = step
-                if #listV == 4 and #listH < 4  then
-                    cell.Special = 2
-                elseif #listH == 4 and #listV < 4  then
-                    cell.Special = 1
-                end
-                -- print(cell.row,cell.col,step,cell.Special)
-            end
-        end
-        --对应2级奖励
-        if #listV == 5 or #listH == 5 then
-            local isCan = true
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            if isCan then
-                cell.step = step
-                cell.Special = 3
-                -- print(cell.row,cell.col,step,cell.Special)
-            end
-        end
-        --对应1级奖励
-        if #listV + #listH >= 6 then
-            for i,v in pairs(listV) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            for i,v in pairs(listH) do
-                if v.Special and v.Special  > 0  then
-                    v.Special = nil
-                end
-            end
-            cell.step = step
-            cell.Special = 4
-            -- print(cell.row,cell.col,step,cell.Special)
-        end
-    end
+    --             cell.step = step
+    --             if #listV == 4 and #listH < 4  then
+    --                 cell.Special = 2
+    --             elseif #listH == 4 and #listV < 4  then
+    --                 cell.Special = 1
+    --             end
+    --             -- print(cell.row,cell.col,step,cell.Special)
+    --         end
+    --     end
+    --     --对应2级奖励
+    --     if #listV == 5 or #listH == 5 then
+    --         local isCan = true
+    --         for i,v in pairs(listV) do
+    --             if v.Special and v.Special  > 0  then
+    --                 v.Special = nil
+    --             end
+    --         end
+    --         for i,v in pairs(listH) do
+    --             if v.Special and v.Special  > 0  then
+    --                 v.Special = nil
+    --             end
+    --         end
+    --         if isCan then
+    --             cell.step = step
+    --             cell.Special = 3
+    --             -- print(cell.row,cell.col,step,cell.Special)
+    --         end
+    --     end
+    --     --对应1级奖励
+    --     if #listV + #listH >= 6 then
+    --         for i,v in pairs(listV) do
+    --             if v.Special and v.Special  > 0  then
+    --                 v.Special = nil
+    --             end
+    --         end
+    --         for i,v in pairs(listH) do
+    --             if v.Special and v.Special  > 0  then
+    --                 v.Special = nil
+    --             end
+    --         end
+    --         cell.step = step
+    --         cell.Special = 4
+    --         -- print(cell.row,cell.col,step,cell.Special)
+    --     end
+    -- end
     return isNeedAnim
 end
 --处理标记消除项目，掉落新的格子内容
@@ -544,9 +548,9 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropList = {}
     --统计所有的最高掉落项
     local DropListFinal = {}
+    local DropListLow = {}
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
-            
             if v.SpecialExp ==nil and v.Special and v.Special > 0 then
                 v.isNeedClean = false
                 v:Change()
@@ -581,6 +585,24 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                         end
                     end
                 end
+
+
+                local isNeedAddToLow = true
+                for i_DLL,v_DLL in pairs(DropListLow) do
+                    if col == v_DLL.col and row >= v_DLL.row then
+                        isNeedAddToLow = false
+                    end
+                end
+                if isNeedAddToLow then
+                    for i_DLL,v_DLL in pairs(DropListLow) do
+                        if col == v_DLL.col and row < v_DLL.row then
+                            table.remove(DropListLow,i_DLL)
+                        end
+                    end
+                    DropListLow[#DropListLow + 1] = {col = v.col,row = v.row}
+                end
+                
+
                 local cell
                 if onAnimationComplete then
                     cell = Cell.new(CELL_ANIM_TIME,CELL_SCALE)
@@ -619,6 +641,17 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
             end
         end
     end
+
+    --这个步骤是优化选项，目的是递归检测时只检查边境变动项，减少效率的不必要损失
+    --列是否更新检索表
+    local checkTBkj = {}
+    local checkTBkjResult = {}
+    for k_DLL,v_DLL in pairs(DropListLow) do
+        checkTBkj[v_DLL.col] = v_DLL.row
+        -- print("DropListLow..","row:",v_DLL.row,"col:",v_DLL.col)
+    end
+    --------------------------
+
     --重新排列grid
     for i , v in pairs(DropListFinal) do
         if v then
@@ -637,6 +670,22 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
             end
         end
     end
+
+    for k_DLL,v_DLL in pairs(DropListLow) do
+        for i_DLL=v_DLL.row,self.rows do
+            if v_DLL.col > 1 and v_DLL.col < self.cols and checkTBkj[v_DLL.col-1] and checkTBkj[v_DLL.col+1] then
+                if i_DLL <= checkTBkj[v_DLL.col-1] or i_DLL <= checkTBkj[v_DLL.col+1] then
+                    checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
+                end
+            else
+                checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
+            end
+        end
+    end
+
+    -- for k_R,v_R in pairs(checkTBkjResult) do
+    --     print("checkTBkjResult..","row:",v_R.row,"col:",v_R.col)
+    -- end
 
     --填补self.grid空缺
     --或执行最后的所有动画步骤
@@ -682,7 +731,7 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                 if START_TAG then
                     step = step + 1
                 end
-                if self:checkAll() then
+                if self:checkAll(checkTBkjResult) then
                     self:changeSingedCell(true,0.75)
                 end
             end)
