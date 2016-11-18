@@ -177,26 +177,42 @@ function MyBoard:checkLevelCompleted()
     self:setTouchEnabled(false)
     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_LEVEL_COMPLETED }))
 end
---(检查全局消除可能，同时检查全局交换可能)
+--(检查 全局/局部 消除可能，同时检查全局交换可能)
 function MyBoard:checkAll( tableToCheck )
     local tableCK = self.cells
-    if tableToCheck then
-        tableCK = tableToCheck
-    end
     WAIT_TIME = 0 
     local sum = 0
     self.checkRes = 0
     self.checkRdCell = nil
-    for _, cell in pairs(tableCK) do
-        sum = sum + self:checkCell(cell)
-        if sum == 0 and self.checkRes == 0 then
-            local res = self:checkRound(cell)
-            if res > 0 then
-                self.checkRdCell = cell
-                self.checkRes = res
+    if tableToCheck then
+        tableCK = tableToCheck
+        for _, cell in pairs(tableToCheck) do
+            sum = sum + self:checkCell(cell)
+        end
+        if sum == 0 then
+            for _, cell in pairs(self.cells) do
+                if self.checkRes == 0 then
+                    local res = self:checkRound(cell)
+                    if res > 0 then
+                        self.checkRdCell = cell
+                        self.checkRes = res
+                    end
+                end
+            end
+        end
+    else
+        for _, cell in pairs(tableCK) do
+            sum = sum + self:checkCell(cell)
+            if sum == 0 and self.checkRes == 0 then
+                local res = self:checkRound(cell)
+                if res > 0 then
+                    self.checkRdCell = cell
+                    self.checkRes = res
+                end
             end
         end
     end
+    
     if sum > 0 then
         self.checkRes = 0
         self.checkRdCell = nil
@@ -561,15 +577,15 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                 local x = col * NODE_PADDING + self.offsetX
                 local y = (self.rows + 1)* NODE_PADDING + self.offsetY
                 if v.SpecialExp and v.Special and v.Special > 0 then
-                    if v.Special == 1 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    elseif v.Special == 2 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    elseif v.Special == 3 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    elseif v.Special == 4 then
-                        dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    end
+                    -- if v.Special == 1 then
+                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                    -- elseif v.Special == 2 then
+                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                    -- elseif v.Special == 3 then
+                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                    -- elseif v.Special == 4 then
+                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                    -- end
                 else
                     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                 end
@@ -586,7 +602,6 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                     end
                 end
 
-
                 local isNeedAddToLow = true
                 for i_DLL,v_DLL in pairs(DropListLow) do
                     if col == v_DLL.col and row >= v_DLL.row then
@@ -601,7 +616,6 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                     end
                     DropListLow[#DropListLow + 1] = {col = v.col,row = v.row}
                 end
-                
 
                 local cell
                 if onAnimationComplete then
