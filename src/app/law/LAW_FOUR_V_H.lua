@@ -6,8 +6,6 @@ LAW_FOUR_V_H.level = 10
 --横竖标识
 LAW_FOUR_V_H.vTag = false
 LAW_FOUR_V_H.hTag = false
-LAW_FOUR_V_H.isreadyToExp = false
-LAW_FOUR_V_H.isReExp = false
 
 --init
 function LAW_FOUR_V_H.checkCell(cell,listV,listH) 
@@ -15,10 +13,6 @@ function LAW_FOUR_V_H.checkCell(cell,listV,listH)
         return self.checkSelf(cell,listV,listH)
     end
     return 0
-end
-
-function LAW_FOUR_V_H.checkReadyToExp()
-    return self.isreadyToExp
 end
 
 function LAW_FOUR_V_H.checkSelf(cell,listV,listH)
@@ -67,7 +61,6 @@ function LAW_FOUR_V_H.exp(cell)
     if not cell.isReExp then
         cell.isNeedClean = true
         cell.isReExp =true
-        print("yes")
     end
 end
 

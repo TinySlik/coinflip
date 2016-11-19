@@ -1,4 +1,3 @@
-
 local Levels = import("..data.MyLevels")
 local Cell   = import("..views.MyCell")
 local START_TAG = false
@@ -25,15 +24,11 @@ local time = 0
 local dispatcher = cc.Director:getInstance():getEventDispatcher()
 local scheduler = cc.Director:getInstance():getScheduler()
 
-
-
 local MyBoard = class("MyBoard", function()
     return display.newNode()
 end)
 
-local LAWs = {
-    
-} 
+local LAWs = {} 
 
 function MyBoard:ctor( levelData )
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
@@ -170,7 +165,7 @@ function MyBoard:ctor( levelData )
     self:initLAWs()
     START_TAG = true
 end
-
+--初始化规则协议
 function MyBoard:initLAWs()
     LAWs[#LAWs+1] = LAW.new("LAW_FOUR_V_H",self.grid,self.cells,LAWs)
 end
@@ -408,7 +403,7 @@ function MyBoard:checkCell( cell , isNotClean )
         listH = {}
     else
         isNeedAnim = 1
-        if not START_TAG and not isNotClean then
+        if not isNotClean and not START_TAG then
             for i,v in pairs(listH) do
                 v.isNeedClean = true
                 v.cutOrder = i
@@ -445,7 +440,7 @@ function MyBoard:checkCell( cell , isNotClean )
         listV = {}
     else
         isNeedAnim = 1
-        if not START_TAG and not isNotClean then
+        if not isNotClean and not START_TAG  then
             for i,v in pairs(listV) do
                 v.isNeedClean = true
                 v.cutOrder = i
@@ -455,13 +450,12 @@ function MyBoard:checkCell( cell , isNotClean )
 
     --在游戏正式交互逻辑中才可能出现特殊消 ,试探性检测也不需要正式消功用
     if START_TAG and isNotClean == nil then
-        -- 检测关键顺序为 特殊消除爆炸执行标 -》 特殊消除生成检测执行 -》 普通消除爆炸执行标
+        -- 检测关键顺序为 特殊消除爆炸执行标 -》 特殊消除生成检测执行 n/y-》 普通消除爆炸执行标 
 
         local expDone = function() 
             local expDone_res = 0
             local LAWExp = function(cell_exp) 
                 if cell_exp.LAW and cell_exp.checkStep < step then
-                    print("inini")
                     expDone_res = expDone_res +1
                     cell_exp.LAW.exp(cell_exp)
                 end
@@ -507,30 +501,6 @@ function MyBoard:checkCell( cell , isNotClean )
         end
         cell.checkStep = step
 
-        -- --对应三级奖励
-        -- if #listV == 4 or #listH == 4  then
-        --     local isCan = true
-        --     for i,v in pairs(listV) do
-        --         if v.Special and v.Special  > 0  then
-        --             isCan = false
-        --         end
-        --     end
-        --     for i,v in pairs(listH) do
-        --         if v.Special and v.Special  > 0 then
-        --             isCan = false
-        --         end
-        --     end
-        --     if isCan then
-                
-        --         cell.step = step
-        --         if #listV == 4 and #listH < 4  then
-        --             cell.Special = 2
-        --         elseif #listH == 4 and #listV < 4  then
-        --             cell.Special = 1
-        --         end
-        --         -- print(cell.row,cell.col,step,cell.Special)
-        --     end
-        -- end
         -- --对应2级奖励
         -- if #listV == 5 or #listH == 5 then
         --     local isCan = true
@@ -566,12 +536,8 @@ function MyBoard:checkCell( cell , isNotClean )
         --     cell.Special = 4
         --     -- print(cell.row,cell.col,step,cell.Special)
         -- end
-        
     end
     return isNeedAnim
-end
-function MyBoard:specialCheck(cell)
-    --
 end
 --处理标记消除项目，掉落新的格子内容
 function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
@@ -581,81 +547,76 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropListLow = {}
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
-            -- if v.SpecialExp ==nil and v.Special and v.Special > 0 then
-                -- v.isNeedClean = false
-                -- v:Change()
-            -- else
-                local drop_pad = 1
-                local row = v.row
-                local col = v.col
-                local x = col * NODE_PADDING + self.offsetX
-                local y = (self.rows + 1)* NODE_PADDING + self.offsetY
-                if v.SpecialExp and v.Special and v.Special > 0 then
-                    -- if v.Special == 1 then
-                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    -- elseif v.Special == 2 then
-                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    -- elseif v.Special == 3 then
-                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    -- elseif v.Special == 4 then
-                    --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                    -- end
-                else
-                    -- dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
-                end
-                
-                for i,v in pairs(DropList) do
-                    if col == v.col then
-                        drop_pad = drop_pad + 1
-                        y = y + NODE_PADDING
-                        for i2,v2 in pairs(DropListFinal) do
-                            if v2.col == v.col then
-                                table.remove(DropListFinal,i2)
-                            end
+            local drop_pad = 1
+            local row = v.row
+            local col = v.col
+            local x = col * NODE_PADDING + self.offsetX
+            local y = (self.rows + 1)* NODE_PADDING + self.offsetY
+            if v.SpecialExp and v.Special and v.Special > 0 then
+                -- if v.Special == 1 then
+                --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_V ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                -- elseif v.Special == 2 then
+                --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FOUR_H ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                -- elseif v.Special == 3 then
+                --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_FIVE ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                -- elseif v.Special == 4 then
+                --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                -- end
+            else
+                -- dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+            end
+            
+            for i,v in pairs(DropList) do
+                if col == v.col then
+                    drop_pad = drop_pad + 1
+                    y = y + NODE_PADDING
+                    for i2,v2 in pairs(DropListFinal) do
+                        if v2.col == v.col then
+                            table.remove(DropListFinal,i2)
                         end
                     end
                 end
+            end
 
-                local isNeedAddToLow = true
+            local isNeedAddToLow = true
+            for i_DLL,v_DLL in pairs(DropListLow) do
+                if col == v_DLL.col and row >= v_DLL.row then
+                    isNeedAddToLow = false
+                end
+            end
+            if isNeedAddToLow then
                 for i_DLL,v_DLL in pairs(DropListLow) do
-                    if col == v_DLL.col and row >= v_DLL.row then
-                        isNeedAddToLow = false
+                    if col == v_DLL.col and row < v_DLL.row then
+                        table.remove(DropListLow,i_DLL)
                     end
                 end
-                if isNeedAddToLow then
-                    for i_DLL,v_DLL in pairs(DropListLow) do
-                        if col == v_DLL.col and row < v_DLL.row then
-                            table.remove(DropListLow,i_DLL)
-                        end
-                    end
-                    DropListLow[#DropListLow + 1] = {col = v.col,row = v.row}
-                end
+                DropListLow[#DropListLow + 1] = {col = v.col,row = v.row}
+            end
 
-                local cell
-                if onAnimationComplete then
-                    cell = Cell.new(CELL_ANIM_TIME,CELL_SCALE)
-                else
-                    cell = Cell.new()
-                end
-                DropList [#DropList + 1] = cell
-                DropListFinal [#DropListFinal + 1] = cell
-                cell.isNeedClean = false
-                cell:setPosition(x, y)
-                cell:setScale(CELL_SCALE)
-                cell.row = self.rows + drop_pad
-                cell.col = col
-                self.grid[self.rows +  drop_pad][col] = cell
-                if onAnimationComplete == nil then
-                    self.batch:removeChild(self.grid[row][col], true)
-                    self.grid[row][col] = nil
-                else
-                    self.grid[row][col]:setLocalZOrder(CELL_ZORDER + 1)
-                    self.grid[row][col]:Explod(CELL_SCALE,self.grid[row][col].cutOrder )
-                    self.grid[row][col] = nil
-                end
-                self.cells[i] = cell
-                self.batch:addChild(cell, CELL_ZORDER)
-            -- end
+            local cell
+            if onAnimationComplete then
+                cell = Cell.new(CELL_ANIM_TIME,CELL_SCALE)
+            else
+                cell = Cell.new()
+            end
+            DropList [#DropList + 1] = cell
+            DropListFinal [#DropListFinal + 1] = cell
+            cell.isNeedClean = false
+            cell:setPosition(x, y)
+            cell:setScale(CELL_SCALE)
+            cell.row = self.rows + drop_pad
+            cell.col = col
+            self.grid[self.rows +  drop_pad][col] = cell
+            if onAnimationComplete == nil then
+                self.batch:removeChild(self.grid[row][col], true)
+                self.grid[row][col] = nil
+            else
+                self.grid[row][col]:setLocalZOrder(CELL_ZORDER + 1)
+                self.grid[row][col]:Explod(CELL_SCALE,self.grid[row][col].cutOrder )
+                self.grid[row][col] = nil
+            end
+            self.cells[i] = cell
+            self.batch:addChild(cell, CELL_ZORDER)
         end
     end
     local temp = nil
@@ -699,12 +660,8 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     for k_DLL,v_DLL in pairs(DropListLow) do
         for i_DLL=v_DLL.row,self.rows do
             -- if v_DLL.col > 1 and v_DLL.col < self.cols and checkTBkj[v_DLL.col-1] and checkTBkj[v_DLL.col+1] then
-            --     if i_DLL <= checkTBkj[v_DLL.col-1] or i_DLL <= checkTBkj[v_DLL.col+1] then
-            --         checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
-            --     end
-            -- else
-                checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
-            -- end
+            -- if i_DLL <= checkTBkj[v_DLL.col-1] or i_DLL <= checkTBkj[v_DLL.col+1] then
+            checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
         end
     end
 
