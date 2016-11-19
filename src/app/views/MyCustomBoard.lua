@@ -172,7 +172,7 @@ function MyBoard:ctor( levelData )
 end
 
 function MyBoard:initLAWs()
-    LAWs[#LAWs+1] = LAW.new("LAW_FOUR_V_H",self.grid,self.cells)
+    LAWs[#LAWs+1] = LAW.new("LAW_FOUR_V_H",self.grid,self.cells,LAWs)
 end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
@@ -407,16 +407,9 @@ function MyBoard:checkCell( cell , isNotClean )
         listH = {}
     else
         isNeedAnim = 1
-        -- print("find a 3 coup H cell")
-        if isNotClean then
-        else
+        if not START_TAG and not isNotClean then
             for i,v in pairs(listH) do
-                if v.Special and v.Special > 0 and v.step ~= step  then
-                    v.SpecialExp = true
-                    v.isNeedClean = true
-                else
-                    v.isNeedClean = true
-                end
+                v.isNeedClean = true
                 v.cutOrder = i
             end
         end
@@ -451,31 +444,64 @@ function MyBoard:checkCell( cell , isNotClean )
         listV = {}
     else
         isNeedAnim = 1
-        if isNotClean then
-        else
+        if not START_TAG and not isNotClean then
             for i,v in pairs(listV) do
-                if v.Special and v.Special > 0 and v.step ~= step then
-                    v.SpecialExp = true
-                    v.isNeedClean = true
-                else
-                    v.isNeedClean = true
-                end
+                v.isNeedClean = true
                 v.cutOrder = i
             end
         end
     end
-    
-    -- --枚举量 代表
-    -- --v.Special作为标记量
-    -- --1 横向4个
-    -- --2 纵向4个
-    -- --3 5个
-    -- --4 6个消除
 
+    --在游戏正式交互逻辑中才可能出现特殊消 ,试探性检测也不需要正式消功用
     if START_TAG and isNotClean == nil then
-        for k,v in pairs(LAWs) do
-            v.checkCell(cell,listV,listH)
+        -- 检测关键顺序为 特殊消除爆炸执行标 -》 特殊消除生成检测执行 -》 普通消除爆炸执行标
+
+        local expDone = function() 
+            local expDone_res = 0
+            local LAWExp = function(cell_exp) 
+                if cell_exp.LAW and cell_exp.checkStep < step then
+                    expDone_res = expDone_res +1
+                    cell_exp.LAW.exp(cell_exp)
+                end
+            end
+            for i_expDown_1,v_expDown_1 in pairs(listV) do
+                LAWExp(v_expDown_1)
+            end
+            for i_expDown_2,v_expDown_2 in pairs(listH) do
+                if #listV and i_expDown_2 == 1 then
+                else
+                    LAWExp(v_expDown_2)
+                end
+            end
+            return expDone_res
         end
+
+        local createSpecial = function() 
+            local sum_res = 0
+            for k,v in pairs(LAWs) do
+                sum_res = sum_res + v.checkCell(cell,listV,listH)
+            end
+            return sum_res
+        end
+        local normalExpDone = function() 
+            for i_NH_1,v_NH_1 in pairs(listV) do
+                v_NH_1.isNeedClean = true
+                v_NH_1.cutOrder = i_NH_1
+            end
+            for i_NH_2,v_NH_2 in pairs(listH) do
+                v_NH_2.isNeedClean = true
+                v_NH_2.cutOrder = i_NH_2
+            end
+        end
+        --1
+        local res1 =  expDone()  
+        --2/3
+        local res2 = createSpecial() 
+        if res2 == 0 then
+            normalExpDone()
+        end
+        cell.checkStep = step
+
         -- --对应三级奖励
         -- if #listV == 4 or #listH == 4  then
         --     local isCan = true
@@ -535,8 +561,10 @@ function MyBoard:checkCell( cell , isNotClean )
         --     cell.Special = 4
         --     -- print(cell.row,cell.col,step,cell.Special)
         -- end
-        self:specialCheck(cell)
+        
     end
+
+
     return isNeedAnim
 end
 function MyBoard:specialCheck(cell)
@@ -570,7 +598,7 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                     --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                     -- end
                 else
-                    dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                    -- dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                 end
                 
                 for i,v in pairs(DropList) do

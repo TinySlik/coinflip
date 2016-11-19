@@ -144,6 +144,9 @@ end
 function Cell:Change()
     -- self.Label:setString(string.format("%d", tostring(self.Special)))
     if self.Special then
+        if Cell.isChanged == nil or Cell.isChanged < self.Special then
+            Cell.isChanged = self.Special
+        end
         if self.Special == 1 then
             if self.arrows == nil then
                 self.arrows = {}
