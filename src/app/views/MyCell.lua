@@ -35,8 +35,11 @@ local Cell = class("Cell", function(animationTime,sCale,nodeType)
     else
         index =  math.floor(math.random(GAME_CELL_KIND)) 
     end
+
     local sprite = display.newSprite(ourCellsName[index][1])
     sprite.nodeType = index 
+
+    sprite.isReExp = false
 
     if animationTime ~= nil and animationTime > 0 then
         sprite:setOpacity(0)
@@ -147,6 +150,7 @@ function Cell:Change()
         if Cell.isChanged == nil or Cell.isChanged < self.Special then
             Cell.isChanged = self.Special
         end
+        self.isReExp = false
         if self.Special == 1 then
             if self.arrows == nil then
                 self.arrows = {}

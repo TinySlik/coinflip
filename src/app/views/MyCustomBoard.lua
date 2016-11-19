@@ -186,6 +186,7 @@ function MyBoard:checkAll( tableToCheck )
     self.checkRes = 0
     self.checkRdCell = nil
     if tableToCheck then
+        self:suffleSheet(tableToCheck)
         for _, cell in pairs(tableToCheck) do
             sum = sum + self:checkCell(cell)
         end
@@ -460,6 +461,7 @@ function MyBoard:checkCell( cell , isNotClean )
             local expDone_res = 0
             local LAWExp = function(cell_exp) 
                 if cell_exp.LAW and cell_exp.checkStep < step then
+                    print("inini")
                     expDone_res = expDone_res +1
                     cell_exp.LAW.exp(cell_exp)
                 end
@@ -478,8 +480,11 @@ function MyBoard:checkCell( cell , isNotClean )
 
         local createSpecial = function() 
             local sum_res = 0
-            for k,v in pairs(LAWs) do
-                sum_res = sum_res + v.checkCell(cell,listV,listH)
+            for k_LAWS,v_LAWS in pairs(LAWs) do
+                sum_res = sum_res + v_LAWS.checkCell(cell,listV,listH)
+            end
+            if sum_res then
+                cell:Change()
             end
             return sum_res
         end
@@ -563,8 +568,6 @@ function MyBoard:checkCell( cell , isNotClean )
         -- end
         
     end
-
-
     return isNeedAnim
 end
 function MyBoard:specialCheck(cell)
@@ -578,10 +581,10 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local DropListLow = {}
     for i,v in pairs(self.cells) do
         if v.isNeedClean then
-            if v.SpecialExp ==nil and v.Special and v.Special > 0 then
-                v.isNeedClean = false
-                v:Change()
-            else
+            -- if v.SpecialExp ==nil and v.Special and v.Special > 0 then
+                -- v.isNeedClean = false
+                -- v:Change()
+            -- else
                 local drop_pad = 1
                 local row = v.row
                 local col = v.col
@@ -652,7 +655,7 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                 end
                 self.cells[i] = cell
                 self.batch:addChild(cell, CELL_ZORDER)
-            end
+            -- end
         end
     end
     local temp = nil
@@ -695,13 +698,13 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     local checkTBkjResult = {} --最终得出的需要检索的check表
     for k_DLL,v_DLL in pairs(DropListLow) do
         for i_DLL=v_DLL.row,self.rows do
-            if v_DLL.col > 1 and v_DLL.col < self.cols and checkTBkj[v_DLL.col-1] and checkTBkj[v_DLL.col+1] then
-                if i_DLL <= checkTBkj[v_DLL.col-1] or i_DLL <= checkTBkj[v_DLL.col+1] then
-                    checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
-                end
-            else
+            -- if v_DLL.col > 1 and v_DLL.col < self.cols and checkTBkj[v_DLL.col-1] and checkTBkj[v_DLL.col+1] then
+            --     if i_DLL <= checkTBkj[v_DLL.col-1] or i_DLL <= checkTBkj[v_DLL.col+1] then
+            --         checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
+            --     end
+            -- else
                 checkTBkjResult[#checkTBkjResult+1] = self.grid[i_DLL][v_DLL.col]
-            end
+            -- end
         end
     end
 
