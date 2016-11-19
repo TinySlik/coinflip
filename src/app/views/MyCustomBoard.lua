@@ -1,11 +1,6 @@
 
 local Levels = import("..data.MyLevels")
 local Cell   = import("..views.MyCell")
-
-local MyBoard = class("MyBoard", function()
-    return display.newNode()
-end)
-
 local START_TAG = false
 local GAME_STEP = 0
 local WAIT_TIME = 0
@@ -29,6 +24,16 @@ local time = 0
 
 local dispatcher = cc.Director:getInstance():getEventDispatcher()
 local scheduler = cc.Director:getInstance():getScheduler()
+
+
+
+local MyBoard = class("MyBoard", function()
+    return display.newNode()
+end)
+
+local LAWs = {
+    
+} 
 
 function MyBoard:ctor( levelData )
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
@@ -130,18 +135,10 @@ function MyBoard:ctor( levelData )
                 cell2 = self.grid[self.checkRdCell.row+1][self.checkRdCell.col]
                 p1 = cc.p(0,HELP_DISTANCE)
                 p2 = cc.p(0,-HELP_DISTANCE)
-            elseif self.checkRes == 2 then
-                cell2 = self.grid[self.checkRdCell.row-1][self.checkRdCell.col]
-                p2 = cc.p(0,HELP_DISTANCE)
-                p1 = cc.p(0,-HELP_DISTANCE)
             elseif self.checkRes == 3 then
                 cell2 = self.grid[self.checkRdCell.row][self.checkRdCell.col+1]
                 p1 = cc.p(HELP_DISTANCE,0)
                 p2 = cc.p(-HELP_DISTANCE,0)
-            elseif self.checkRes == 4 then
-                cell2 = self.grid[self.checkRdCell.row][self.checkRdCell.col-1]
-                p2 = cc.p(HELP_DISTANCE,0)
-                p1 = cc.p(-HELP_DISTANCE,0)
             end
 
             if isInTouch and 
@@ -170,7 +167,12 @@ function MyBoard:ctor( levelData )
 
     end , 1.0/60 , false)
     self:suffleSheet(self.cells)
+    self:initLAWs()
     START_TAG = true
+end
+
+function MyBoard:initLAWs()
+    LAWs[#LAWs+1] = LAW.new("LAW_FOUR_V_H",self.grid,self.cells)
 end
 --关卡完成事件填写处（未定义）
 function MyBoard:checkLevelCompleted()
@@ -179,13 +181,11 @@ function MyBoard:checkLevelCompleted()
 end
 --(检查 全局/局部 消除可能，同时检查全局交换可能)
 function MyBoard:checkAll( tableToCheck )
-    local tableCK = self.cells
     WAIT_TIME = 0 
     local sum = 0
     self.checkRes = 0
     self.checkRdCell = nil
     if tableToCheck then
-        tableCK = tableToCheck
         for _, cell in pairs(tableToCheck) do
             sum = sum + self:checkCell(cell)
         end
@@ -201,7 +201,7 @@ function MyBoard:checkAll( tableToCheck )
             end
         end
     else
-        for _, cell in pairs(tableCK) do
+        for _, cell in pairs(self.cells) do
             sum = sum + self:checkCell(cell)
             if sum == 0 and self.checkRes == 0 then
                 local res = self:checkRound(cell)
@@ -218,7 +218,6 @@ function MyBoard:checkAll( tableToCheck )
         self.checkRdCell = nil
     else
         if self.checkRes > 0 then
-            --print(self.checkRdCell . row ,self.checkRdCell . col,self.checkRes )
         else
             self:shuffle(function() end)
         end
@@ -240,9 +239,7 @@ end
 -- -2表示出错
 -- -1表示周围无可交换项
 -- 1表示上方可换
--- 2表示下方可换
 -- 3表示左方可换
--- 4表示右方可换
 function MyBoard:checkRound( cell )
     if cell == nil then
         print("erro")
@@ -262,17 +259,6 @@ function MyBoard:checkRound( cell )
             return 1
         end
     end
-    if cell.row > 1 and self.grid[cell.row-1][cell.col] then
-        cell2 = self.grid[cell.row-1][cell.col]
-        self:swap(cell.row, cell.col, cell.row-1, cell.col)
-        if self:checkCell(cell1,true) > 0 or self:checkCell(cell2,true) > 0 then
-            isCan = true
-        end
-        self:swap(cell1.row, cell1.col, cell2.row, cell2.col)
-        if isCan then
-            return 2
-        end
-    end
     if cell.col < self.cols and self.grid[cell.row][cell.col+1] then
         cell2 = self.grid[cell.row][cell.col+1]
         self:swap(cell.row, cell.col, cell.row, cell.col+1)
@@ -282,17 +268,6 @@ function MyBoard:checkRound( cell )
         self:swap(cell1.row, cell1.col, cell2.row, cell2.col)
         if isCan then
             return 3
-        end
-    end
-    if cell.col > 1 and self.grid[cell.row][cell.col-1] then
-        cell2 = self.grid[cell.row][cell.col-1]
-        self:swap(cell.row, cell.col, cell.row, cell.col-1)
-        if self:checkCell(cell1,true) > 0 or self:checkCell(cell2,true) > 0 then
-            isCan = true
-        end
-        self:swap(cell1.row, cell1.col, cell2.row, cell2.col)
-        if isCan then
-            return 4
         end
     end
     return -1
@@ -489,6 +464,7 @@ function MyBoard:checkCell( cell , isNotClean )
             end
         end
     end
+    
     -- --枚举量 代表
     -- --v.Special作为标记量
     -- --1 横向4个
@@ -496,68 +472,75 @@ function MyBoard:checkCell( cell , isNotClean )
     -- --3 5个
     -- --4 6个消除
 
-    -- if START_TAG and isNotClean == nil then
-    --     --对应三级奖励
-    --     if #listV == 4 or #listH == 4  then
-    --         local isCan = true
-    --         for i,v in pairs(listV) do
-    --             if v.Special and v.Special  > 0  then
-    --                 isCan = false
-    --             end
-    --         end
-    --         for i,v in pairs(listH) do
-    --             if v.Special and v.Special  > 0 then
-    --                 isCan = false
-    --             end
-    --         end
-    --         if isCan then
+    if START_TAG and isNotClean == nil then
+        for k,v in pairs(LAWs) do
+            v.checkCell(cell,listV,listH)
+        end
+        -- --对应三级奖励
+        -- if #listV == 4 or #listH == 4  then
+        --     local isCan = true
+        --     for i,v in pairs(listV) do
+        --         if v.Special and v.Special  > 0  then
+        --             isCan = false
+        --         end
+        --     end
+        --     for i,v in pairs(listH) do
+        --         if v.Special and v.Special  > 0 then
+        --             isCan = false
+        --         end
+        --     end
+        --     if isCan then
                 
-    --             cell.step = step
-    --             if #listV == 4 and #listH < 4  then
-    --                 cell.Special = 2
-    --             elseif #listH == 4 and #listV < 4  then
-    --                 cell.Special = 1
-    --             end
-    --             -- print(cell.row,cell.col,step,cell.Special)
-    --         end
-    --     end
-    --     --对应2级奖励
-    --     if #listV == 5 or #listH == 5 then
-    --         local isCan = true
-    --         for i,v in pairs(listV) do
-    --             if v.Special and v.Special  > 0  then
-    --                 v.Special = nil
-    --             end
-    --         end
-    --         for i,v in pairs(listH) do
-    --             if v.Special and v.Special  > 0  then
-    --                 v.Special = nil
-    --             end
-    --         end
-    --         if isCan then
-    --             cell.step = step
-    --             cell.Special = 3
-    --             -- print(cell.row,cell.col,step,cell.Special)
-    --         end
-    --     end
-    --     --对应1级奖励
-    --     if #listV + #listH >= 6 then
-    --         for i,v in pairs(listV) do
-    --             if v.Special and v.Special  > 0  then
-    --                 v.Special = nil
-    --             end
-    --         end
-    --         for i,v in pairs(listH) do
-    --             if v.Special and v.Special  > 0  then
-    --                 v.Special = nil
-    --             end
-    --         end
-    --         cell.step = step
-    --         cell.Special = 4
-    --         -- print(cell.row,cell.col,step,cell.Special)
-    --     end
-    -- end
+        --         cell.step = step
+        --         if #listV == 4 and #listH < 4  then
+        --             cell.Special = 2
+        --         elseif #listH == 4 and #listV < 4  then
+        --             cell.Special = 1
+        --         end
+        --         -- print(cell.row,cell.col,step,cell.Special)
+        --     end
+        -- end
+        -- --对应2级奖励
+        -- if #listV == 5 or #listH == 5 then
+        --     local isCan = true
+        --     for i,v in pairs(listV) do
+        --         if v.Special and v.Special  > 0  then
+        --             v.Special = nil
+        --         end
+        --     end
+        --     for i,v in pairs(listH) do
+        --         if v.Special and v.Special  > 0  then
+        --             v.Special = nil
+        --         end
+        --     end
+        --     if isCan then
+        --         cell.step = step
+        --         cell.Special = 3
+        --         -- print(cell.row,cell.col,step,cell.Special)
+        --     end
+        -- end
+        -- --对应1级奖励
+        -- if #listV + #listH >= 6 then
+        --     for i,v in pairs(listV) do
+        --         if v.Special and v.Special  > 0  then
+        --             v.Special = nil
+        --         end
+        --     end
+        --     for i,v in pairs(listH) do
+        --         if v.Special and v.Special  > 0  then
+        --             v.Special = nil
+        --         end
+        --     end
+        --     cell.step = step
+        --     cell.Special = 4
+        --     -- print(cell.row,cell.col,step,cell.Special)
+        -- end
+        self:specialCheck(cell)
+    end
     return isNeedAnim
+end
+function MyBoard:specialCheck(cell)
+    --
 end
 --处理标记消除项目，掉落新的格子内容
 function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
@@ -657,14 +640,10 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
     end
 
     --这个步骤是优化选项，目的是递归检测时只检查边境变动项，减少效率的不必要损失
-    --列是否更新检索表
-    local checkTBkj = {}
-    local checkTBkjResult = {}
+    local checkTBkj = {} --列是否更新检索表
     for k_DLL,v_DLL in pairs(DropListLow) do
         checkTBkj[v_DLL.col] = v_DLL.row
-        -- print("DropListLow..","row:",v_DLL.row,"col:",v_DLL.col)
     end
-    --------------------------
 
     --重新排列grid
     for i , v in pairs(DropListFinal) do
@@ -685,6 +664,7 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
         end
     end
 
+    local checkTBkjResult = {} --最终得出的需要检索的check表
     for k_DLL,v_DLL in pairs(DropListLow) do
         for i_DLL=v_DLL.row,self.rows do
             if v_DLL.col > 1 and v_DLL.col < self.cols and checkTBkj[v_DLL.col-1] and checkTBkj[v_DLL.col+1] then
@@ -697,16 +677,12 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
         end
     end
 
-    -- for k_R,v_R in pairs(checkTBkjResult) do
-    --     print("checkTBkjResult..","row:",v_R.row,"col:",v_R.col)
-    -- end
-
     --填补self.grid空缺
     --或执行最后的所有动画步骤
     if onAnimationComplete == nil then
         self:lined()
         if self:checkAll() then
-             self:changeSingedCell()
+            self:changeSingedCell()
         end 
     else
         local timeSc =  1.0
@@ -905,7 +881,7 @@ function MyBoard:onExit()
     scheduler:unscheduleScriptEntry(self.bigHandel )
     GAME_CELL_EIGHT_ADD_SCALE = 1.0
     NODE_PADDING = 100 * GAME_CELL_STAND_SCALE
-    self:removeAllEventListeners()
+    -- self:removeAllEventListeners()
 end
 
 return MyBoard

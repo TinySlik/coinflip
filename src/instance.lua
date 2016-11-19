@@ -1,0 +1,1 @@
+require("app.law.LAW_PRO")

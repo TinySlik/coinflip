@@ -4,6 +4,7 @@ require("config")
 require("framework.init")
 require("framework.shortcodes")
 require("framework.cc.init")
+require("instance")
 
 --修改了引擎内的事件传递，解耦合
 function custom_event_handler(obj, method)
