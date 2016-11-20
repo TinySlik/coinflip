@@ -6,6 +6,7 @@ LAW_FOUR_V_H.level = 10
 --横竖标识
 LAW_FOUR_V_H.vTag = false
 LAW_FOUR_V_H.hTag = false
+LAW_FOUR_V_H.isReExp = false
 
 --init
 function LAW_FOUR_V_H.checkCell(cell,listV,listH) 
@@ -19,14 +20,16 @@ function LAW_FOUR_V_H.checkSelf(cell,listV,listH)
     --对应三级奖励
     if #listV == 4 or #listH == 4  then
         if #listV == 4 and #listH < 4  then
-            cell.LAW = self
+            cell.LAW = LAW.new("LAW_FOUR_V_H",self.grid,self.cells,self.LAWs)
+            cell.LAW.hTag = true
             cell.Special = 2
             for i_v= 2,4 do
                 listV[i_v].isNeedClean = true
                 listV[i_v].cutOrder = i_v
             end
         elseif #listH == 4 and #listV < 4  then
-            cell.LAW = self
+            cell.LAW = LAW.new("LAW_FOUR_V_H",self.grid,self.cells,self.LAWs)
+            cell.LAW.vTag = true
             cell.Special = 1
             for i_h= 2,4 do
                 listH[i_h].isNeedClean = true
@@ -56,11 +59,50 @@ function LAW_FOUR_V_H.checkRe(cell,listV,listH)
 end
 
 --exp
-function LAW_FOUR_V_H.exp(cell) 
+function LAW_FOUR_V_H.exp(cell,callBack,cutOrder) 
     --一波检测只给炸一次
-    if not cell.isReExp then
+    if not cell.LAW.isReExp then
+        if not cutOrder then
+            cutOrder = 1
+        end
         cell.isNeedClean = true
-        cell.isReExp =true
+        cell.LAW.isReExp =true
+        if cell.Special == 2 then
+            for i=1,#self.grid[1] do
+                if i == cell.col  then
+                    
+                else
+                    local cell_AH = self.grid[cell.row][i]
+                    cell_AH.isNeedClean = true
+                    cell_AH.cutOrder = cutOrder
+                    if cell_AH.RAW and cell_AH.Special > 0   then
+                        cell_AH.RAW.
+                        cell_AH.RAW.exp(cell_AH,callBack,cutOrder+1)
+                        -- if not cell_AV.SpecialExp  then
+                        --     self:SpecialSinged(cell_AV,cutOrder+1)
+                        -- end
+                    end
+                end
+            end
+        elseif cell.Special == 1 then
+            for i=1,(#self.grid)/2 do
+                if i == cell.row  then
+                    
+                else
+                    print(i)
+                    local cell_AV = self.grid[i][cell.col]
+                    cell_AV.isNeedClean = true
+                    cell_AV.cutOrder = cutOrder
+                    if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0 then
+                        cell_AV.LAW.exp(cell_AV,callBack,cutOrder+1)
+                        -- if not cell_AV.SpecialExp  then
+                        --     self:SpecialSinged(cell_AV,cutOrder+1)
+                        -- end
+                    end
+                end
+            end
+        end
+        print("yes")
     end
 end
 

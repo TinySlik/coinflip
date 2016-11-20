@@ -456,15 +456,17 @@ function MyBoard:checkCell( cell , isNotClean )
             local expDone_res = 0
             local LAWExp = function(cell_exp) 
                 if cell_exp.LAW and cell_exp.checkStep < step then
+                    print("ininini")
                     expDone_res = expDone_res +1
-                    cell_exp.LAW.exp(cell_exp)
+                    cell_exp.LAW.isReExp = false
+                    cell_exp.LAW.exp(cell_exp,LAWExp)
                 end
             end
             for i_expDown_1,v_expDown_1 in pairs(listV) do
                 LAWExp(v_expDown_1)
             end
             for i_expDown_2,v_expDown_2 in pairs(listH) do
-                if #listV and i_expDown_2 == 1 then
+                if #listV > 0 and i_expDown_2 == 1 then
                 else
                     LAWExp(v_expDown_2)
                 end
@@ -477,8 +479,10 @@ function MyBoard:checkCell( cell , isNotClean )
             for k_LAWS,v_LAWS in pairs(LAWs) do
                 sum_res = sum_res + v_LAWS.checkCell(cell,listV,listH)
             end
-            if sum_res then
+            if sum_res > 0 then
+                cell.LAW.isReExp = false
                 cell:Change()
+                cell.isNeedClean = false
             end
             return sum_res
         end
@@ -563,7 +567,7 @@ function MyBoard:changeSingedCell( onAnimationComplete , timeScale )
                 --     dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_T ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
                 -- end
             else
-                -- dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
+                dispatcher:dispatchEvent(TinyEventCustom({name = GAME_SIG_COMPELETE_NORMAL ,cell_x = x,cell_y = y,nodeType = v.nodeType}))
             end
             
             for i,v in pairs(DropList) do
@@ -775,8 +779,10 @@ function MyBoard:swap( row1 , col1 , row2 , col2 , callBack , timeScale )
             self.grid[row2_][col2_].col = col1
         end
         temp = self.grid[row1_][col1_] 
-        self.grid[row1_][col1_] = self.grid[row2_][col2_]
-        self.grid[row2_][col2_] = temp
+        if self.grid[row2_] and  self.grid[row2_][col2_] then
+            self.grid[row1_][col1_] = self.grid[row2_][col2_]
+            self.grid[row2_][col2_] = temp
+        end
     end
 
     if callBack == nil then
