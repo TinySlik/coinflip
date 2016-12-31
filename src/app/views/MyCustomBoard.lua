@@ -535,12 +535,20 @@ function MyBoard:checkCell( cell , isNotClean )
                 local isCan = true
                 for i,v in pairs(listV) do
                     if v.Special and v.Special  > 0  then
-                        v.Special = nil
+                        if not v.SpecialExp then
+                            v.Special = nil
+                        else
+
+                        end
                     end
                 end
                 for i,v in pairs(listH) do
                     if v.Special and v.Special  > 0  then
-                        v.Special = nil
+                        if not v.SpecialExp then
+                            v.Special = nil
+                        else
+                            
+                        end
                     end
                 end
                 if isCan then
@@ -552,13 +560,22 @@ function MyBoard:checkCell( cell , isNotClean )
             --对应1级奖励
             if #listV + #listH >= 6 then
                 for i,v in pairs(listV) do
+
                     if v.Special and v.Special  > 0  then
-                        v.Special = nil
+                        if not v.SpecialExp then
+                            v.Special = nil
+                        else
+                            
+                        end
                     end
                 end
                 for i,v in pairs(listH) do
                     if v.Special and v.Special  > 0  then
-                        v.Special = nil
+                        if not v.SpecialExp then
+                            v.Special = nil
+                        else
+                            
+                        end
                     end
                 end
                 cell.step = step
@@ -596,6 +613,11 @@ function MyBoard:checkCell( cell , isNotClean )
 end
 
 function MyBoard:SpecialSinged( cell ,cutOrder)
+    cell.isNeedClean = true
+    if cell.Special and cell.Special > 0 then
+        cell.SpecialExp = true
+        cell.cutOrder = cutOrder
+    end
     if cell.Special == 2 then
         for i=1,self.cols do
             if i == cell.col  then
@@ -604,9 +626,8 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
                 cell_AH = self:getCell(cell.row, i)
                 cell_AH.isNeedClean = true
                 cell_AH.cutOrder = cutOrder
-                print(cell_AH.cutOrder)
-                if cell_AH.Special and cell_AH.Special and cell_AH.Special > 0   then
-                    if not cell_AH.SpecialExp then
+                if cell_AH.Special and cell_AH.Special > 0   then
+                    if not cell_AH.SpecialExp and (cell_AH.cutOrder == nil  or cell_AH.cutOrder >  cutOrder   )then
                         self:SpecialSinged(cell_AH,cutOrder+1)
                     end
                 end
@@ -620,9 +641,8 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
                 cell_AV = self:getCell(i, cell.col)
                 cell_AV.isNeedClean = true
                 cell_AV.cutOrder = cutOrder
-                print(cell_AV.cutOrder)
-                if cell_AV.Special and cell_AV.Special  and cell_AV.Special > 0 then
-                    if not cell_AV.SpecialExp  then
+                if cell_AV.Special and cell_AV.Special > 0 then
+                    if not cell_AV.SpecialExp  and (cell_AV.cutOrder == nil  or cell_AV.cutOrder >  cutOrder   ) then
                         self:SpecialSinged(cell_AV,cutOrder+1)
                     end
                 end
@@ -644,19 +664,14 @@ function MyBoard:SpecialSinged( cell ,cutOrder)
         for i,v in pairs(waitForRemove) do
             v.isNeedClean = true
             v.cutOrder = cutOrder
-            print(v.cutOrder)
-            if v.Special and v.Special > 0 and v ~= cell  then
+            if v.Special and v.Special > 0 and v ~= cell  and (v.cutOrder == nil  or v.cutOrder >  cutOrder   )  then
                 if not v.SpecialExp  then
                     self:SpecialSinged(v,cutOrder+1)
                 end
             end
         end
     end
-    cell.isNeedClean = true
-    if cell.Special and cell.Special > 0 then
-        cell.SpecialExp = true
-        cell.cutOrder = cutOrder
-    end
+    
 end
 
 
