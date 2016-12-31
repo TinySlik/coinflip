@@ -10,8 +10,8 @@ Levels.NODE_IS_ICE2     = --[[00000100]] 4
 Levels.NODE_IS_ICE3     = --[[00000110]] 6
 Levels.NODE_IS_ICE4     = --[[00001000]] 8
 Levels.NODE_IS_ICE5     = --[[00001010]] 10
-Levels.NODE_IS_ICE6     = --[[00001100]] 14
-Levels.NODE_IS_ICE7     = --[[00001110]] 16
+Levels.NODE_IS_ICE6     = --[[00001100]] 12
+Levels.NODE_IS_ICE7     = --[[00001110]] 14
 Levels.NODE_IS_COLF     = --[[00001001]] 9
 
 Levels.NODE_IS_UP_B     = --[[10000000]] 128
