@@ -131,18 +131,10 @@ function MyBoard:ctor( levelData )
                 cell2 = self.grid[self.checkRdCell.row+1][self.checkRdCell.col]
                 p1 = cc.p(0,HELP_DISTANCE)
                 p2 = cc.p(0,-HELP_DISTANCE)
-            elseif self.checkRes == 2 then
-                cell2 = self.grid[self.checkRdCell.row-1][self.checkRdCell.col]
-                p2 = cc.p(0,HELP_DISTANCE)
-                p1 = cc.p(0,-HELP_DISTANCE)
             elseif self.checkRes == 3 then
                 cell2 = self.grid[self.checkRdCell.row][self.checkRdCell.col+1]
                 p1 = cc.p(HELP_DISTANCE,0)
                 p2 = cc.p(-HELP_DISTANCE,0)
-            elseif self.checkRes == 4 then
-                cell2 = self.grid[self.checkRdCell.row][self.checkRdCell.col-1]
-                p2 = cc.p(HELP_DISTANCE,0)
-                p1 = cc.p(-HELP_DISTANCE,0)
             end
 
             if isInTouch and 
@@ -243,17 +235,6 @@ function MyBoard:checkRound( cell )
             return 1
         end
     end
-    if cell.row > 1 and self.grid[cell.row-1][cell.col] then
-        cell2 = self.grid[cell.row-1][cell.col]
-        self:swap(cell.row, cell.col, cell.row-1, cell.col)
-        if self:checkCell(cell1,true) > 0 or self:checkCell(cell2,true) > 0 then
-            isCan = true
-        end
-        self:swap(cell1.row, cell1.col, cell2.row, cell2.col)
-        if isCan then
-            return 2
-        end
-    end
     if cell.col < self.cols and self.grid[cell.row][cell.col+1] then
         cell2 = self.grid[cell.row][cell.col+1]
         self:swap(cell.row, cell.col, cell.row, cell.col+1)
@@ -263,17 +244,6 @@ function MyBoard:checkRound( cell )
         self:swap(cell1.row, cell1.col, cell2.row, cell2.col)
         if isCan then
             return 3
-        end
-    end
-    if cell.col > 1 and self.grid[cell.row][cell.col-1] then
-        cell2 = self.grid[cell.row][cell.col-1]
-        self:swap(cell.row, cell.col, cell.row, cell.col-1)
-        if self:checkCell(cell1,true) > 0 or self:checkCell(cell2,true) > 0 then
-            isCan = true
-        end
-        self:swap(cell1.row, cell1.col, cell2.row, cell2.col)
-        if isCan then
-            return 4
         end
     end
     return -1
